@@ -1,0 +1,109 @@
+{
+  // Place your headfree-app workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and
+  // description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope
+  // is left empty or omitted, the snippet gets applied to all languages. The prefix is what is
+  // used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+  // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders.
+  // Placeholders with the same ids are connected.
+  // Example:
+  // "Print to console": {
+  // 	"scope": "javascript,typescript",
+  // 	"prefix": "log",
+  // 	"body": [
+  // 		"console.log('$1');",
+  // 		"$2"
+  // 	],
+  // 	"description": "Log output to console"
+  // }
+
+  "Component for Headfree ": {
+    "scope": "typescriptreact, javascriptreact",
+    "prefix": "hfcomp",
+    "body": [
+      "import React, { useState, useEffect } from 'react';",
+      "import { StyleSheet, View } from 'react-native';",
+      "",
+      "// Packages",
+      "import { useRouter } from 'expo-router';",
+      "",
+      "// Components",
+      "import Text from '@/components/common/Text';",
+      "import MyTouchableOpacity from '@/components/common/Buttons/MyTouchableOpacity';",
+      "",
+      "// Constants",
+      "import { Colors, Sizes} from '@/constants';",
+      "",
+      "// Utils",
+      "import { wp, hp } from '@/utils/ui/sizes';",
+      "import { getFontSize } from '@/utils/text/fonts'",
+
+      "",
+      "// Types",
+      "",
+      "const ${1:${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}} = () => {",
+      "  const router = useRouter();",
+      "  return (",
+      "    <View style={styles.container} >",
+      "    </View>",
+      "  );",
+      "};",
+      "",
+      "export default ${1:${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}};",
+      "",
+      "const styles = StyleSheet.create({",
+      "  container: {",
+      "    flex: 1",
+      "  }",
+      "});"
+    ]
+  },
+  "Typescript Component for Headfree  with Props": {
+    "scope": "typescriptreact, javascriptreact",
+    "prefix": "tshf",
+    "body": [
+      "import React, { useState, useEffect } from 'react';",
+      "import { StyleSheet, View } from 'react-native';",
+      "",
+      "// Packages",
+      "import { useRouter } from 'expo-router';",
+      "",
+      "// Constants",
+      "import { Colors, Sizes } from '@/constants';",
+      "",
+      "// Hooks",
+      "",
+      "// Utils",
+      "import { wp, hp } from '@/utils/ui/sizes';",
+      "import { getFontSize } from '@/utils/text/fonts'",
+      "",
+      "// Types",
+      "",
+      "// Components",
+      "import Text from '@/components/common/Text';",
+      "import MyTouchableOpacity from '@/components/common/Buttons/MyTouchableOpacity';",
+      "",
+      "// Hooks",
+      "",
+      "interface  ${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}Props {",
+      "    $1",
+      "}",
+      "",
+      "const ${TM_FILENAME_BASE/(.*)/${1:/capitalize}/} = ({  }:  ${TM_FILENAME_BASE/(.*)/${1:/capitalize}/}Props) => {",
+      "  const router = useRouter();",
+      "  return (",
+      "    <View style={styles.container} >",
+      "    </View>",
+      "  );",
+      "};",
+      "",
+      "export default ${TM_FILENAME_BASE/(.*)/${1:/capitalize}/};",
+      "",
+      "const styles = StyleSheet.create({",
+      "  container: {",
+      "    flex: 1,",
+      "    backgroundColor: Colors.Background",
+      "  }",
+      "});"
+    ]
+  }
+}
