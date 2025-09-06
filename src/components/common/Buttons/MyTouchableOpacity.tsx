@@ -7,7 +7,7 @@ import { useRouter } from "expo-router";
 // Redux
 
 // Types
-import { MyTouchableOpacityProps } from "@/common/Buttons/MyTouchableOpacity/MyTouchableOpacity.types";
+import { MyTouchableOpacityProps } from "./Buttons.types";
 
 const MyTouchableOpacity = forwardRef<View, MyTouchableOpacityProps>(
   (

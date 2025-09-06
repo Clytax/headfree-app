@@ -105,5 +105,12 @@
       "  }",
       "});"
     ]
+  },
+
+  //UTILS
+  "Font Size shortcut for Text in Headfree": {
+    "scope": "typescriptreact, javascriptreact",
+    "prefix": "hfs",
+    "body": [" fontSize={getFontSize($1)}"]
   }
 }

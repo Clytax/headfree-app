@@ -30,7 +30,7 @@ const Text = forwardRef(
       onPress,
       onContainerPress,
       uppercase = false,
-      color = Colors.white,
+      color = Colors.Text,
       onLayout,
       textCenter = false,
     }: TextProps,
@@ -41,7 +41,6 @@ const Text = forwardRef(
       "_" +
       capitalizeFirstLetter(fontWeight.toLowerCase())
     }`;
-    console.log(fontFamily, finalFontFamily, fontSize);
     return (
       <ReactText
         ref={ref}
