@@ -23,7 +23,7 @@ const SafeAreaContainer = React.memo(
       extraBottom = 0,
       insetsOverride,
       useSafeArea = true,
-      backgroundColor = Colors.Background,
+      backgroundColor = Colors.background,
       testID,
     },
     ref
@@ -57,7 +57,7 @@ const SafeAreaContainer = React.memo(
     );
 
     return (
-      <View ref={ref} style={containerStyle} testID={testID}>
+      <View ref={ref} style={[containerStyle, style]} testID={testID}>
         {children}
       </View>
     );

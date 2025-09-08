@@ -30,7 +30,7 @@ const Text = forwardRef(
       onPress,
       onContainerPress,
       uppercase = false,
-      color = Colors.Text,
+      color = Colors.text,
       onLayout,
       textCenter = false,
     }: TextProps,

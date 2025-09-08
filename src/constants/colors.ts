@@ -67,9 +67,32 @@ export const BaseColors = {
 };
 
 const FinalColors = {
-  Background: BaseColors.neutral900,
+  primary: BaseColors.primary500,
+  primaryLight: BaseColors.primary300,
+  primaryDark: BaseColors.primary700,
+  secondary: BaseColors.secondary500,
+  secondaryDark: BaseColors.secondary700,
 
-  Text: BaseColors.neutral100,
+  background: BaseColors.neutral900,
+
+  text: BaseColors.neutral100,
+  textDark: BaseColors.neutral700,
+
+  // Colors
+  black: BaseColors.neutral900,
+  blackTransparent: BaseColors.neutral900 + "80",
+  white: BaseColors.neutral50,
+  whiteTransparent: BaseColors.neutral50 + "80",
+  gray: BaseColors.neutral300,
+  grayTransparent: BaseColors.neutral300 + "80",
+  lightGray: BaseColors.neutral200,
+  lightGrayTransparent: BaseColors.neutral200 + "80",
+
+  // Utils
+  error: BaseColors.error300,
+  success: BaseColors.success300,
+  warning: BaseColors.warning300,
+  info: BaseColors.primary300,
 };
 
 const Colors = { ...BaseColors, ...FinalColors };

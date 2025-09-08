@@ -19,6 +19,9 @@ export interface SafeAreaContainerProps {
   /** Extra padding added on bottom of the safe-area bottom padding. @default 0 */
   extraBottom?: number;
 
+  extraLeft?: number;
+  extraRight?: number;
+
   /**
    * Optional override for safe-area insets.
    * Useful for portals or nested SafeAreaProviders.
