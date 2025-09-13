@@ -14,6 +14,20 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignUpSchema } from "@/schemas/authSchema";
 import { useHeaderHeight } from "@react-navigation/elements";
+
+// Firebase
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "@react-native-firebase/auth";
+import firestore, {
+  setDoc,
+  doc,
+  serverTimestamp,
+  getFirestore,
+} from "@react-native-firebase/firestore";
+import { FirebaseError } from "firebase/app";
 // Components
 import AuthAGB from "@/components/common/Policy/AuthAGB";
 import Text from "@/components/common/Text";
@@ -38,6 +52,9 @@ const SignUp = () => {
 
   const headerHeight = useHeaderHeight(); // 0 if no header
 
+  const db = getFirestore();
+  const auth = getAuth();
+
   const {
     control,
     handleSubmit,
@@ -48,9 +65,46 @@ const SignUp = () => {
   } = useForm<SignUpFormType>({
     resolver: zodResolver(SignUpSchema),
     mode: "onSubmit",
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
-  const onSubmit = (data: SignUpFormType) => {};
+  const onSubmit = async (data: SignUpFormType) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password
+      );
+
+      const user = userCredential.user;
+
+      // set displayName if provided
+      if (data.name) {
+        await updateProfile(user, {
+          displayName: data.name,
+        });
+      }
+
+      await setDoc(
+        doc(db, "users", user.uid),
+        {
+          onboardingCompleted: false,
+
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      console.log("User registered:", user);
+    } catch (error: any) {
+      const err = error as FirebaseError;
+      alert("Registration failed: " + err.message);
+    }
+  };
 
   return (
     <SafeAreaContainer>
@@ -88,6 +142,7 @@ const SignUp = () => {
                 name="name"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <MyInput
+                    loading={isSubmitting}
                     label="Name"
                     placeholder="John Doe"
                     value={value}
@@ -108,6 +163,7 @@ const SignUp = () => {
                 name="email"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <MyInput
+                    loading={isSubmitting}
                     label="E-Mail"
                     placeholder="name@email.com"
                     value={value}
@@ -133,6 +189,7 @@ const SignUp = () => {
                 name="password"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <MyInput
+                    loading={isSubmitting}
                     required
                     label="Password"
                     placeholder="Your password"
@@ -155,13 +212,17 @@ const SignUp = () => {
               />
             </View>
             <View style={styles.bottom}>
-              <AuthAGB />
-              <SimpleButton title="Register" onPress={handleSubmit(onSubmit)} />
+              <AuthAGB loading={isSubmitting} />
+              <SimpleButton
+                title="Register"
+                onPress={handleSubmit(onSubmit)}
+                loading={isSubmitting}
+              />
               <Text fontSize={getFontSize(12)} textCenter>
                 Already have an account?{" "}
                 <Text
                   fontSize={getFontSize(13)}
-                  onPress={() => router.replace("/(auth)")}
+                  onPress={() => !isSubmitting && router.replace("/(auth)")}
                   color={Colors.primaryLight}
                 >
                   Sign In
@@ -187,12 +248,11 @@ const styles = StyleSheet.create({
     marginBottom: hp(5),
   },
   top: {
-    marginTop: hp(10),
-    marginBottom: hp(7),
+    marginTop: hp(6),
+    marginBottom: "auto",
     alignItems: "center",
   },
   bottom: {
-    marginTop: "auto", // anchor bottom
     marginBottom: hp(4),
     gap: hp(2),
   },

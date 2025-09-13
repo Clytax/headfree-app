@@ -1,64 +1,54 @@
-// React / React Native
 import React, { useEffect, useState } from "react";
-// Expo
-import { Stack, useRouter, useSegments } from "expo-router";
-
-// Hooks
-// Providers
-
-// Firebase
+import { AppState } from "react-native";
+import { Stack } from "expo-router";
 import {
   FirebaseAuthTypes,
   getAuth,
   onAuthStateChanged,
+  onIdTokenChanged,
+  reload,
+  signOut,
 } from "@react-native-firebase/auth";
-
-// Components
 import PrepareApp from "@/providers/PrepareApp";
+
+// Packages
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+// Context
+import { AuthProvider, useAuth } from "@/context/auth/AuthContext";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+
+const qc = new QueryClient();
 const InitialLayout = () => {
-  const isLoaded = true;
-  const isSignedIn = false;
+  const auth = getAuth();
   const [initializing, setInitializing] = useState(true);
-  const [user, setUser] = useState<FirebaseAuthTypes.User | null>();
-  const router = useRouter();
+  const { user, loading } = useAuth();
+  const isLoaded = !loading;
+  const isSignedIn = !!user;
 
-  const handleAuthStateChanged = (user: FirebaseAuthTypes.User | null) => {
-    console.log("onAuthStateChanged", user);
-    setUser(user);
-    if (initializing) setInitializing(false);
-  };
-  useEffect(() => {
-    const subscriber = onAuthStateChanged(getAuth(), handleAuthStateChanged);
-    return subscriber; // unsubscribe on unmount
-  }, []);
+  if (!isLoaded) return null;
 
-  if (initializing) return null;
   return (
     <Stack>
-      <Stack.Protected guard={isSignedIn && isLoaded ? true : false}>
-        <Stack.Screen
-          name="(main)"
-          options={{
-            headerShown: false,
-          }}
-        />
+      <Stack.Protected guard={isSignedIn}>
+        <Stack.Screen name="(main)" options={{ headerShown: false }} />
       </Stack.Protected>
 
-      <Stack.Protected guard={!isSignedIn || !isLoaded}>
-        <Stack.Screen
-          name="(auth)"
-          options={{
-            headerShown: false,
-          }}
-        />
+      <Stack.Protected guard={!isSignedIn}>
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       </Stack.Protected>
     </Stack>
   );
 };
+
 export default function RootLayout() {
   return (
     <PrepareApp>
-      <InitialLayout />
+      <QueryClientProvider client={qc}>
+        <AuthProvider>
+          <InitialLayout />
+        </AuthProvider>
+      </QueryClientProvider>
     </PrepareApp>
   );
 }

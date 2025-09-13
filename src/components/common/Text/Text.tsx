@@ -33,6 +33,8 @@ const Text = forwardRef(
       color = Colors.text,
       onLayout,
       textCenter = false,
+
+      ...rest
     }: TextProps,
     ref: any
   ) => {
@@ -57,6 +59,8 @@ const Text = forwardRef(
         numberOfLines={numberOfLines}
         ellipsizeMode={ellipsis ? "tail" : "clip"}
         onPress={onPress}
+        onLayout={onLayout}
+        {...rest}
       >
         {children}
       </ReactText>

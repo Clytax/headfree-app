@@ -47,7 +47,6 @@ type SignInFormType = z.infer<typeof SignInSchema>;
 
 const SignIn = () => {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const headerHeight = useHeaderHeight(); // 0 if no header
 
   const {
@@ -67,7 +66,6 @@ const SignIn = () => {
   });
   console.log(errors);
   const onSubmit = async (data: SignInFormType) => {
-    setLoading(true);
     try {
       const { email, password } = data;
       await signInWithEmailAndPassword(getAuth(), email, password);
@@ -75,8 +73,6 @@ const SignIn = () => {
       const err = e as FirebaseError;
       console.log("Sign in error: ", err);
       alert("Sign in failed: " + err.message);
-    } finally {
-      setLoading(false);
     }
   };
   return (
@@ -154,7 +150,11 @@ const SignIn = () => {
             </View>
 
             <View style={styles.bottom}>
-              <SimpleButton title="Login" onPress={handleSubmit(onSubmit)} />
+              <SimpleButton
+                title="Login"
+                onPress={handleSubmit(onSubmit)}
+                loading={isSubmitting}
+              />
               <Text fontSize={getFontSize(12)} textCenter>
                 No Account?{" "}
                 <Text
@@ -181,7 +181,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Sizes.containerPaddingHorizontal,
   },
   top: {
-    marginVertical: hp(10),
+    marginTop: hp(6),
+    marginBottom: "auto",
     alignItems: "center",
     gap: hp(2),
   },
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
     gap: hp(2),
   },
   bottom: {
-    marginTop: "auto",
+    marginTop: hp(6),
     marginBottom: hp(4),
     gap: hp(2),
   },

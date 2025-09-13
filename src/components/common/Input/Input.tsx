@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useRef,
   useState,
+  useEffect,
   ComponentProps,
 } from "react";
 import {
@@ -13,6 +14,7 @@ import {
   TextInput,
   Pressable,
   InteractionManager,
+  ActivityIndicator,
 } from "react-native";
 
 // Utils
@@ -22,7 +24,7 @@ import { getFontSize } from "@/utils/text/fonts";
 import { Colors, Sizes } from "@/constants";
 import { wp, hp } from "@/utils/ui/sizes";
 
-// Expo vector icons — add/remove sets as you need
+// Expo vector icons
 import {
   Entypo,
   Feather,
@@ -42,11 +44,7 @@ import {
 import Text from "@/components/common/Text";
 import { MyInputProps, MyInputHandle } from "./Input.d";
 
-/** -----------------------------
- * Icon typing (library + name)
- * ------------------------------*/
-
-// Discriminated union so `name` is correctly typed per library
+/** Icon typing */
 type IconSpec =
   | { set: "Entypo"; name: ComponentProps<typeof Entypo>["name"] }
   | { set: "Feather"; name: ComponentProps<typeof Feather>["name"] }
@@ -68,7 +66,6 @@ type IconSpec =
   | { set: "EvilIcons"; name: ComponentProps<typeof EvilIcons>["name"] }
   | { set: "Foundation"; name: ComponentProps<typeof Foundation>["name"] };
 
-// Helper to render an IconSpec
 function renderIconFromSpec(
   spec: IconSpec | undefined,
   color: string,
@@ -109,60 +106,46 @@ function renderIconFromSpec(
   }
 }
 
-/** -----------------------------
- * Component
- * ------------------------------*/
 const MyInput = forwardRef<
   MyInputHandle,
-  Omit<
-    MyInputProps,
-    // remove legacy icon props if they existed in your .d.ts
-    "leftIcon" | "rightIcon"
-  > & {
-    /** New declarative icon API */
+  Omit<MyInputProps, "leftIcon" | "rightIcon"> & {
     leftIcon?: IconSpec;
     rightIcon?: IconSpec;
+    loading?: boolean;
   }
 >((props, ref) => {
   const {
-    // Content & behavior
+    loading = false,
     value,
     onChangeText,
     onFocus,
     onBlur,
     multiline = false,
 
-    // Decoration
     label,
     subLabel,
     helperText,
     errorText,
     required,
 
-    // Look & feel
     size = "md",
     status = "default",
     disabled = false,
 
-    // Password
     secureTextEntry = false,
     showPasswordToggle = false,
 
-    // NEW: Icons via library + name
     leftIcon,
     rightIcon,
 
-    // Layout & styles
     containerStyle,
     inputStyle,
     outerStyle,
 
-    // Auto-grow
     autoGrow = multiline,
     minHeight = hp(4.6),
     maxHeight,
 
-    // TextInput props
     placeholder,
     keyboardType,
     selectionColor = Colors.primary,
@@ -172,7 +155,7 @@ const MyInput = forwardRef<
     onSubmitEditing,
     blurOnSubmit,
     placeholderTextColor,
-    editable, // combined with disabled
+    editable,
     testID,
     accessibilityLabel,
     accessibilityHint,
@@ -184,7 +167,6 @@ const MyInput = forwardRef<
   const [height, setHeight] = useState(minHeight);
   const [focused, setFocused] = useState(false);
 
-  // Imperative API
   useImperativeHandle(ref, () => ({
     focus: () => tiRef.current?.focus(),
     blur: () => tiRef.current?.blur(),
@@ -192,6 +174,13 @@ const MyInput = forwardRef<
     isFocused: () => !!tiRef.current?.isFocused(),
   }));
 
+  useEffect(() => {
+    if (loading) {
+      tiRef.current?.blur();
+    }
+  }, [loading]);
+
+  const blocked = disabled || loading;
   const hasError = status === "error" || !!errorText;
 
   const { paddings, fontSize, iconSize, radius } = useMemo(() => {
@@ -220,7 +209,6 @@ const MyInput = forwardRef<
     }
   }, [size]);
 
-  // Palette with focus/error awareness for border + icon color
   const palette = useMemo(() => {
     const base = {
       bg: Colors.neutral700,
@@ -240,21 +228,19 @@ const MyInput = forwardRef<
 
     if (hasError) {
       base.border = Colors.error;
-      base.text = Colors.neutral200; // keep text legible
       base.placeholder = Colors.error;
       base.icon = Colors.error;
     }
 
-    if (disabled) {
+    if (blocked) {
       base.text = Colors.gray;
       base.placeholder = Colors.gray;
       base.icon = Colors.gray;
     }
 
     return base;
-  }, [status, hasError, disabled, focused]);
+  }, [status, hasError, blocked, focused]);
 
-  // Auto-grow for multiline
   const onContentSizeChange = useCallback(
     (e: any) => {
       if (!autoGrow || !multiline) return;
@@ -268,10 +254,8 @@ const MyInput = forwardRef<
     [autoGrow, multiline, minHeight, maxHeight]
   );
 
-  // Password toggle
   const effectiveSecure = secureTextEntry && !showPassword;
 
-  // Focus handlers (preserve external callbacks)
   const handleFocus = useCallback(
     (...args: any[]) => {
       setFocused(true);
@@ -289,14 +273,13 @@ const MyInput = forwardRef<
   );
 
   return (
-    <View style={outerStyle}>
-      {/* Label */}
+    <View style={[outerStyle, { position: "relative" }]}>
       {label ? (
         <>
           <Text
             fontSize={getFontSize(20)}
             color={hasError ? Colors.error : Colors.neutral100}
-            style={{ marginBottom: subLabel ? hp(0.3) : hp(1) }} // slightly tighter before subLabel
+            style={{ marginBottom: subLabel ? hp(0.3) : hp(1) }}
           >
             {label}
             <Text color={Colors.error}>{required ? "*" : ""}</Text>
@@ -313,7 +296,6 @@ const MyInput = forwardRef<
         </>
       ) : null}
 
-      {/* Field wrapper */}
       <View
         style={[
           styles.container,
@@ -323,27 +305,26 @@ const MyInput = forwardRef<
             borderRadius: radius,
             paddingVertical: paddings.v,
             paddingHorizontal: paddings.h,
-            opacity: disabled ? 0.6 : 1,
+            opacity: blocked ? 0.6 : 1,
             borderWidth: 1,
           },
           containerStyle,
         ]}
+        pointerEvents={blocked ? "none" : "auto"}
       >
-        {/* Left icon */}
         {leftIcon ? (
           <View style={styles.iconLeft}>
             {renderIconFromSpec(leftIcon, palette.icon, iconSize)}
           </View>
         ) : null}
 
-        {/* TextInput */}
         <TextInput
           ref={tiRef}
           value={value}
           onChangeText={onChangeText}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          editable={editable ?? !disabled}
+          editable={editable ?? !blocked}
           multiline={multiline}
           onContentSizeChange={onContentSizeChange}
           style={[
@@ -363,8 +344,8 @@ const MyInput = forwardRef<
             },
             inputStyle,
           ]}
-          selectionColor={Colors.primary}
-          placeholder={required ? `${placeholder ?? ""} *` : placeholder}
+          selectionColor={selectionColor}
+          placeholder={required ? `${placeholder ?? ""}*` : placeholder}
           placeholderTextColor={placeholderTextColor ?? palette.placeholder}
           keyboardType={keyboardType}
           secureTextEntry={effectiveSecure}
@@ -372,20 +353,18 @@ const MyInput = forwardRef<
           autoCorrect={autoCorrect}
           returnKeyType={returnKeyType}
           onSubmitEditing={onSubmitEditing}
-          blurOnSubmit={blurOnSubmit}
           testID={testID}
           accessibilityLabel={accessibilityLabel ?? label ?? placeholder}
           accessibilityHint={accessibilityHint}
+          accessibilityState={{ disabled: blocked, busy: loading }}
           {...rest}
         />
 
-        {/* Right icon OR password toggle */}
         {secureTextEntry && showPasswordToggle ? (
           <Pressable
             onPress={() => {
               InteractionManager.runAfterInteractions(() => {
                 setShowPassword((s) => !s);
-                // Optionally re-focus to keep caret stable:
                 requestAnimationFrame(() => tiRef.current?.focus());
               });
             }}
@@ -394,10 +373,9 @@ const MyInput = forwardRef<
               showPassword ? "Hide password" : "Show password"
             }
             style={styles.iconRight}
-            disabled={disabled}
+            disabled={blocked}
             hitSlop={8}
           >
-            {/* Keeping Entypo here for consistency, but you could also expose it via IconSpec if you want */}
             <Entypo
               name={showPassword ? "eye" : "eye-with-line"}
               size={iconSize + 2}
@@ -411,7 +389,6 @@ const MyInput = forwardRef<
         ) : null}
       </View>
 
-      {/* Helper / Error text */}
       {(errorText || helperText) && (
         <Text
           fontSize={getFontSize(12)}
@@ -422,6 +399,10 @@ const MyInput = forwardRef<
           {errorText ?? helperText}
         </Text>
       )}
+
+      {loading && (
+        <View style={styles.loadingOverlay} pointerEvents="auto"></View>
+      )}
     </View>
   );
 });
@@ -429,9 +410,6 @@ const MyInput = forwardRef<
 MyInput.displayName = "MyInput";
 export default MyInput;
 
-/** -----------------------------
- * Styles
- * ------------------------------*/
 const styles = StyleSheet.create({
   container: {
     width: "100%",
@@ -443,7 +421,7 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: "transparent",
     includeFontPadding: false,
-    paddingVertical: 0, // vertical handled by wrapper
+    paddingVertical: 0,
   },
   iconLeft: {
     justifyContent: "center",
@@ -453,5 +431,16 @@ const styles = StyleSheet.create({
   iconRight: {
     justifyContent: "center",
     alignItems: "center",
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.08)",
+    borderRadius: Sizes.smallRadius,
   },
 });

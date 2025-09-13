@@ -29,6 +29,8 @@ export interface MyInputHandle {
 export interface MyInputProps
   extends Omit<TextInputProps, "style" | "onChangeText" | "multiline"> {
   // Content & behavior
+
+  loading?: boolean; // disables input and shows loading indicator
   value?: string;
   onChangeText?: (text: string) => void;
   multiline?: boolean;

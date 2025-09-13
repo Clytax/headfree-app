@@ -19,6 +19,11 @@ export interface TextProps {
   ellipsis?: boolean;
   uppercase?: boolean;
   textCenter?: boolean;
+
+  // ACcessibility
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  accessibilityRole?: "text" | "header" | "link" | "button";
 }
 
 export interface TextContainerProps {
@@ -31,6 +36,7 @@ export type fontWeights =
   | "light"
   | "lightitalic"
   | "regular"
+  | "regularitalic"
   | "medium"
   | "mediumitalic"
   | "semibold"

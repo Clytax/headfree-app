@@ -67,7 +67,7 @@ const SimpleButton = forwardRef<
       variant = "primary",
       size = "md",
       fullWidth = false,
-      rounded = Sizes.smallRadius,
+      rounded = Sizes.buttonRadius,
 
       loading = false,
       disabled: disabledProp = false,

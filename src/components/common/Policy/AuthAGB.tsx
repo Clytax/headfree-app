@@ -21,12 +21,18 @@ import MyTouchableOpacity from "@/components/common/Buttons/MyTouchableOpacity";
 
 // Hooks
 
-interface AuthAGBProps {}
+interface AuthAGBProps {
+  loading?: boolean;
+}
 
-const AuthAGB = ({}: AuthAGBProps) => {
-  const onTermsOfServicesPress = () => {};
+const AuthAGB = ({ loading }: AuthAGBProps) => {
+  const onTermsOfServicesPress = () => {
+    if (loading) return;
+  };
 
-  const onPrivacyPolicyPress = () => {};
+  const onPrivacyPolicyPress = () => {
+    if (loading) return;
+  };
   const router = useRouter();
   return (
     <Text

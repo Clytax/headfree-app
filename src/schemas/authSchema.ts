@@ -1,9 +1,16 @@
 import * as z from "zod";
 
 export const SignUpSchema = z.object({
-  name: z.optional(
-    z.string().min(2, { message: "Name must be at least 2 characters long" })
-  ),
+  name: z
+    .union([
+      z.literal(""),
+      z
+        .string()
+        .trim()
+        .min(2, { message: "Name must be at least 2 characters long" }),
+    ])
+    .transform((v) => (v === "" ? undefined : v))
+    .optional(),
   email: z.email({ message: "Invalid email address" }),
   password: z
     .string()

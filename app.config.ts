@@ -4,8 +4,8 @@ dotenv.config();
 module.exports = ({ config }: ConfigContext): ExpoConfig => {
   return {
     ...config,
-    name: "expo-template-redux",
-    slug: "expo-template-redux",
+    name: "headfree-app",
+    slug: "headfree-app",
     version: "1.0.0",
     ios: {
       supportsTablet: true,
@@ -15,7 +15,7 @@ module.exports = ({ config }: ConfigContext): ExpoConfig => {
       },
       bundleIdentifier: "com.clytax.headfree",
       googleServicesFile:
-        process.env.IOS_FIREBASE_GOOGLE_SERVICE || "./GoogleService-Info.plist",
+        process.env.IOS_FIREBASE_GOOGLE_SERVICE ?? "./GoogleService-Info.plist",
     },
     android: {
       adaptiveIcon: {
