@@ -2,6 +2,7 @@ export type OnboardingData = {
   policy: OnboardingPrivacyPolicy;
   emergencySetup: OnboardingEmergencySetup;
   migraineProfile: OnboardingMigraineProfileSetup | null;
+  settings: OnboardingSettings | null;
 };
 
 export type OnboardingPrivacyPolicy = {
@@ -57,6 +58,11 @@ export type OnboardingMigraineProfileSetup = {
   } | null;
 };
 
+export type OnboardingSettings = {
+  sendReminders?: boolean;
+  reminderTime?: string; // "08:00"
+};
+
 export type OnboardingSteps =
   | "Welcome"
   | "promises"
@@ -76,7 +82,7 @@ export const defaultData: OnboardingData = {
   },
 
   emergencySetup: {
-    brightness: 50,
+    brightness: 0.5,
     music: false,
     musicType: null,
     mutePhone: false,
@@ -95,6 +101,10 @@ export const defaultData: OnboardingData = {
     stress: null,
     waterIntake: null,
     wheaterSensitivity: null,
+  },
+  settings: {
+    sendReminders: true,
+    reminderTime: "22:00",
   },
 };
 
@@ -122,4 +132,5 @@ export type OnboardingState = {
   updateMigraineProfile: (
     profile: Partial<OnboardingMigraineProfileSetup> | null
   ) => void;
+  updateSettings: (settings: Partial<OnboardingSettings> | null) => void;
 };

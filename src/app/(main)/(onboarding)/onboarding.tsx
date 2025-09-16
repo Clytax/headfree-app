@@ -148,6 +148,10 @@ const Onboarding = () => {
         ...prevAnalytics,
         onboardingCompleted: true,
       },
+      settings: {
+        reminderEnabled: data?.settings?.sendReminders ?? false,
+        reminderTime: data?.settings?.reminderTime ?? "22:00",
+      },
     };
 
     await setDoc(

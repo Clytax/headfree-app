@@ -4,6 +4,7 @@ import { LogBox, StyleSheet } from "react-native";
 
 // Components
 import BaseToast from "@/components/common/BaseToast";
+import NotificationNavigator from "@/providers/NotificationNavigator";
 
 // Expo
 
@@ -13,6 +14,10 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Context
+
+// Utils
+import { rescheduleIfNeeded } from "@/services/reminders";
+
 // Hooks
 import useFonts from "../hooks/useFonts";
 
@@ -20,6 +25,9 @@ import useFonts from "../hooks/useFonts";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NotificationsProvider } from "@/providers/NotificationProvider";
+
+// Hooks
+import { useUser } from "@/hooks/firebase/useUser";
 SplashScreen.preventAutoHideAsync();
 LogBox.ignoreLogs(["Clerk: Clerk has been loaded with development keys"]);
 LogBox.ignoreLogs([""]);
@@ -57,6 +65,7 @@ const PrepareApp = ({ children }: { children: React.ReactNode }) => {
         <NotificationsProvider>
           <BottomSheetModalProvider>
             {children}
+            <NotificationNavigator />
             <BaseToast />
           </BottomSheetModalProvider>
         </NotificationsProvider>

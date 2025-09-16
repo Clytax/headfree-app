@@ -156,7 +156,7 @@ export default function MyTabBar({
                       name={icon}
                       size={ICON_SIZE}
                       color={color}
-                      style={{ marginBottom: 4 }}
+                      style={{ marginBottom: 2 }}
                     />
                     <Text style={[styles.label, { color }]}>{label}</Text>
                   </View>
@@ -200,7 +200,7 @@ export default function MyTabBar({
                       name={icon}
                       size={ICON_SIZE}
                       color={color}
-                      style={{ marginBottom: 4 }}
+                      style={{ marginBottom: 2 }}
                     />
                     <Text style={[styles.label, { color }]}>{label}</Text>
                   </View>

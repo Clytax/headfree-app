@@ -83,6 +83,13 @@ export const useOnboardingStore = createWithEqualityFn<OnboardingState>()(
             },
           },
         })),
+      updateSettings: (patch) =>
+        set((s) => ({
+          data: {
+            ...s.data,
+            settings: { ...(s.data.settings ?? {}), ...patch },
+          },
+        })),
       reset: () => set({ steps: [], index: 0, data: defaultData }),
     }),
     {

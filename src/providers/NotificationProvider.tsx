@@ -1,4 +1,3 @@
-// providers/NotificationsProvider.tsx
 import React, {
   createContext,
   useContext,
@@ -11,16 +10,26 @@ import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 
-type Ctx = {
+type NotificationCtx = {
   requestAndRegister: () => Promise<{ granted: boolean; token?: string }>;
   expoPushToken?: string;
+  notification?: Notifications.Notification;
+  scheduleNotification: (
+    content: Notifications.NotificationContentInput,
+    trigger?: Notifications.NotificationTriggerInput
+  ) => Promise<string>;
+  cancelAllScheduledNotifications: () => Promise<void>;
+  clearNotificationBadge: () => Promise<boolean>;
 };
 
-const NotificationsCtx = createContext<Ctx>({
+const NotificationsContext = createContext<NotificationCtx>({
   requestAndRegister: async () => ({ granted: false }),
+  scheduleNotification: async () => "",
+  cancelAllScheduledNotifications: async () => {},
+  clearNotificationBadge: async () => false,
 });
 
-// Foreground presentation for iOS
+// Configure notification handler for foreground presentation
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
@@ -34,79 +43,194 @@ export const NotificationsProvider: React.FC<React.PropsWithChildren> = ({
   children,
 }) => {
   const [expoPushToken, setExpoPushToken] = useState<string | undefined>();
-  const respListener = useRef<Notifications.Subscription | null>(null);
-  const recvListener = useRef<Notifications.Subscription | null>(null);
+  const [notification, setNotification] = useState<
+    Notifications.Notification | undefined
+  >();
+
+  const notificationListener = useRef<Notifications.EventSubscription | null>(
+    null
+  );
+  const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
+    // Set up Android notification channel
     if (Platform.OS === "android") {
       Notifications.setNotificationChannelAsync("default", {
-        name: "default",
-        importance: Notifications.AndroidImportance.DEFAULT,
-      }).catch(() => {});
+        name: "Default",
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#FF231F7C",
+      }).catch(console.error);
     }
 
-    recvListener.current = Notifications.addNotificationReceivedListener(
-      () => {}
-    );
-    respListener.current =
-      Notifications.addNotificationResponseReceivedListener(() => {});
+    // Set up notification listeners
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener((notification) => {
+        setNotification(notification);
+      });
+
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log("Notification response:", response);
+        // Handle notification response (e.g., deep linking)
+        // You can add custom logic here based on response.notification.request.content.data
+      });
 
     return () => {
-      if (recvListener.current) {
-        Notifications.removeNotificationSubscription(recvListener.current);
+      if (notificationListener.current) {
+        notificationListener.current.remove();
       }
-      if (respListener.current) {
-        Notifications.removeNotificationSubscription(respListener.current);
+      if (responseListener.current) {
+        responseListener.current.remove();
       }
     };
   }, []);
 
   const requestAndRegister = useCallback(async () => {
-    // 1) Check existing permission
-    const current = await Notifications.getPermissionsAsync();
-    let granted =
-      current.granted ||
-      current.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL;
+    // Check existing permissions
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
 
-    // 2) Ask if not granted yet
-    if (!granted) {
-      const ask = await Notifications.requestPermissionsAsync({
-        ios: { allowAlert: true, allowBadge: true, allowSound: true },
+    // Request permissions if not already granted
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync({
+        ios: {
+          allowAlert: true,
+          allowBadge: true,
+          allowSound: true,
+          allowDisplayInCarPlay: true,
+          allowCriticalAlerts: false,
+        },
       });
-      granted =
-        ask.granted ||
-        ask.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL;
+      finalStatus = status;
     }
 
+    // Handle iOS provisional authorization
+    const granted =
+      finalStatus === "granted" ||
+      (Platform.OS === "ios" &&
+        typeof finalStatus === "object" &&
+        finalStatus?.ios?.status ===
+          Notifications.IosAuthorizationStatus.PROVISIONAL);
+
     if (!granted) {
+      console.warn("Push notification permissions not granted");
       return { granted: false };
     }
 
-    // 3) Get token with a reliable projectId
-    const projectId =
-      // EAS production
-      Constants.easConfig?.projectId ??
-      // Dev client and Expo Go
-      Constants.expoConfig?.extra?.eas?.projectId;
+    try {
+      // Get project ID from Constants (EAS configuration)
+      const projectId =
+        Constants?.expoConfig?.extra?.eas?.projectId ??
+        Constants?.easConfig?.projectId;
 
-    const tokenResp = await Notifications.getExpoPushTokenAsync(
-      projectId ? { projectId } : undefined
-    );
+      if (!projectId) {
+        throw new Error(
+          "Project ID not found. Make sure you have configured EAS."
+        );
+      }
 
-    const token = tokenResp.data;
-    setExpoPushToken(token);
+      // Get Expo push token
+      const { data: token } = await Notifications.getExpoPushTokenAsync({
+        projectId,
+      });
+      console.log(token);
 
-    // Send token to backend here
-    // await api.savePushToken(token)
+      setExpoPushToken(token);
+      console.log("Expo push token:", token);
 
-    return { granted: true, token };
+      // TODO: Send token to your backend
+      // await sendTokenToBackend(token);
+
+      return { granted: true, token };
+    } catch (error) {
+      console.error("Error getting push token:", error);
+      return { granted: false };
+    }
   }, []);
 
+  const scheduleNotification = useCallback(
+    async (
+      content: Notifications.NotificationContentInput,
+      trigger: Notifications.NotificationTriggerInput = null
+    ) => {
+      try {
+        const identifier = await Notifications.scheduleNotificationAsync({
+          content,
+          trigger,
+        });
+        return identifier;
+      } catch (error) {
+        console.error("Error scheduling notification:", error);
+        throw error;
+      }
+    },
+    []
+  );
+
+  const cancelAllScheduledNotifications = useCallback(async () => {
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+    } catch (error) {
+      console.error("Error canceling notifications:", error);
+      throw error;
+    }
+  }, []);
+
+  const clearNotificationBadge = useCallback(async () => {
+    try {
+      return await Notifications.setBadgeCountAsync(0);
+    } catch (error) {
+      console.error("Error clearing badge:", error);
+      return false;
+    }
+  }, []);
+
+  const contextValue: NotificationCtx = {
+    requestAndRegister,
+    expoPushToken,
+    notification,
+    scheduleNotification,
+    cancelAllScheduledNotifications,
+    clearNotificationBadge,
+  };
+
   return (
-    <NotificationsCtx.Provider value={{ requestAndRegister, expoPushToken }}>
+    <NotificationsContext.Provider value={contextValue}>
       {children}
-    </NotificationsCtx.Provider>
+    </NotificationsContext.Provider>
   );
 };
 
-export const useNotifications = () => useContext(NotificationsCtx);
+export const useNotifications = () => {
+  const context = useContext(NotificationsContext);
+  if (!context) {
+    throw new Error(
+      "useNotifications must be used within a NotificationsProvider"
+    );
+  }
+  return context;
+};
+
+// Hook for accessing the last notification response
+export const useLastNotificationResponse = () => {
+  return Notifications.useLastNotificationResponse();
+};
+
+// Utility function for sending test notifications (development only)
+export const sendTestNotification = async () => {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "Test Notification 📧",
+      body: "This is a test notification!",
+      data: { screen: "home", userId: "123" },
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds: 2,
+    },
+  });
+};
+
+export default NotificationsContext;
