@@ -19,6 +19,7 @@ import { Colors } from "@/constants";
 import EmergencySetupSheet, {
   EmergencySetupSheetHandle,
 } from "@/components/Onboarding/OnboardingEmergency/OnboardingEmergencySetupSheet";
+import { useAuth } from "@/context/auth/AuthContext";
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
 
@@ -47,12 +48,12 @@ export function OnboardingNavigation({
   const current = useOnboardingStore((s) => s.currentStep());
   const next = useOnboardingStore((s) => s.next);
   const policy = useOnboardingStore((s) => s.data.policy);
+  const migraineProfile = useOnboardingStore((s) => s.data.migraineProfile);
 
   const total = steps.length;
   const isLast = total > 0 && index === total - 1;
 
-  const isSkippable =
-    current === "emergencySetup" || current === "migraineProfile";
+  const isSkippable = current === "emergencySetup";
 
   const emergencyRef = useRef<EmergencySetupSheetHandle>(null);
 
@@ -82,7 +83,25 @@ export function OnboardingNavigation({
   };
 
   const canContinuePolicy = !!policy?.accepted;
-  const canContinue = current !== "policy" || canContinuePolicy;
+  const canContinueProfile =
+    migraineProfile?.ageRange !== null &&
+    migraineProfile?.waterIntake !== null &&
+    migraineProfile?.sleepDuration !== null &&
+    migraineProfile?.stress !== null &&
+    migraineProfile?.gender !== null &&
+    migraineProfile?.meals !== null &&
+    migraineProfile?.caffeine !== null;
+
+  const getCanContinue = () => {
+    if (current === "policy") {
+      return canContinuePolicy;
+    }
+
+    if (current === "migraineProfile") {
+      return canContinueProfile;
+    }
+  };
+  const canContinue = getCanContinue() ?? true;
 
   const bgProgress = useSharedValue(canContinue ? 1 : 0);
   useEffect(() => {

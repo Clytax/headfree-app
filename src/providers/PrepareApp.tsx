@@ -19,6 +19,7 @@ import useFonts from "../hooks/useFonts";
 // Splash Screen
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { NotificationsProvider } from "@/providers/NotificationProvider";
 SplashScreen.preventAutoHideAsync();
 LogBox.ignoreLogs(["Clerk: Clerk has been loaded with development keys"]);
 LogBox.ignoreLogs([""]);
@@ -53,10 +54,12 @@ const PrepareApp = ({ children }: { children: React.ReactNode }) => {
   return (
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider style={styles.container}>
-        <BottomSheetModalProvider>
-          {children}
-          <BaseToast />
-        </BottomSheetModalProvider>
+        <NotificationsProvider>
+          <BottomSheetModalProvider>
+            {children}
+            <BaseToast />
+          </BottomSheetModalProvider>
+        </NotificationsProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

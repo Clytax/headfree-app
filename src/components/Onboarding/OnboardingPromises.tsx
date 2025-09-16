@@ -1,19 +1,22 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
-import Animated, { SlideInRight, SlideOutLeft } from "react-native-reanimated";
+import Animated, {
+  LinearTransition,
+  SlideInRight,
+  SlideOutLeft,
+} from "react-native-reanimated";
 // Components
 import Text from "@/components/common/Text";
 import OnboardingTop from "@/components/Onboarding/OnboardingTop";
 
 // Constants
-import { Colors, Sizes } from "@/constants";
+import { Colors } from "@/constants";
 import { wp, hp } from "@/utils/ui/sizes";
 import { getFontSize } from "@/utils/text/fonts";
 
 // Lucide icons
 import { NotebookPen, Brain, Lightbulb, Siren } from "lucide-react-native";
-const AnimatedText = Animated.createAnimatedComponent(Text);
 
 const LIST_OF_PROMISES = [
   { label: "Simple daily logging", Icon: NotebookPen },
@@ -39,22 +42,25 @@ const OnboardingPromises = () => {
   return (
     <View style={styles.container}>
       <OnboardingTop />
-
-      <View style={styles.center}>
-        <AnimatedText
+      <Animated.View
+        layout={LinearTransition.springify()}
+        style={styles.center}
+      >
+        <Animated.View
+          layout={LinearTransition.springify()}
           entering={enter(BASE_DELAY)}
           exiting={exit(BASE_DELAY)}
-          textCenter
-          fontSize={getFontSize(25)}
-          fontWeight="semibold"
+          style={{ alignItems: "center" }}
         >
-          Track, understand, and prevent migraines
-        </AnimatedText>
+          <Text textCenter fontSize={getFontSize(25)} fontWeight="semibold">
+            Track, understand, and prevent migraines
+          </Text>
+        </Animated.View>
 
         <View style={styles.list}>
           {LIST_OF_PROMISES.map(({ label, Icon }, index) => (
             <Animated.View
-              key={index}
+              key={label}
               entering={enter(BASE_DELAY + STEP * (index + 1))}
               exiting={exit(BASE_DELAY + STEP * (index + 1))}
               style={styles.item}
@@ -71,7 +77,7 @@ const OnboardingPromises = () => {
             </Animated.View>
           ))}
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 };
@@ -85,6 +91,7 @@ const styles = StyleSheet.create({
   center: {
     flex: 1,
     justifyContent: "center",
+    marginTop: hp(10),
     alignItems: "center",
     marginBottom: hp(5),
   },

@@ -6,12 +6,18 @@ module.exports = ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: "headfree-app",
     slug: "headfree-app",
+    scheme: "headfreeapp",
+
     version: "1.0.0",
     ios: {
       supportsTablet: true,
 
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        NSHealthShareUsageDescription:
+          "Headfree reads health data to improve migraine risk predictions.",
+        NSHealthUpdateUsageDescription:
+          "Headfree writes health data only if you enable a feature that needs it.",
       },
       bundleIdentifier: "com.clytax.headfree",
       googleServicesFile:
@@ -24,8 +30,8 @@ module.exports = ({ config }: ConfigContext): ExpoConfig => {
       },
       edgeToEdgeEnabled: true,
       package: "com.clytax.headfree",
-      // googleServicesFile:
-      //   process.env.ANDROID_FIREBASE_GOOGLE_SERVICE || "./google-services.json",
+      googleServicesFile:
+        process.env.ANDROID_FIREBASE_GOOGLE_SERVICE || "./google-services.json",
     },
   };
 };

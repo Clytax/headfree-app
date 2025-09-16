@@ -8,16 +8,13 @@ import React, {
   useState,
 } from "react";
 import { AppState, AppStateStatus } from "react-native";
-import auth, {
+import {
   FirebaseAuthTypes,
   getAuth,
   onAuthStateChanged,
-  onIdTokenChanged,
   reload,
-  signOut,
 } from "@react-native-firebase/auth";
 
-// Types
 import { AuthContextType } from "@/context/auth/AuthContext.types";
 
 const AuthContext = createContext<AuthContextType>({
@@ -28,39 +25,43 @@ const AuthContext = createContext<AuthContextType>({
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const auth = getAuth();
+  const firebaseAuth = getAuth();
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [loading, setLoading] = useState(true);
   const appState = useRef<AppStateStatus>(AppState.currentState);
   const mounted = useRef(true);
 
-  const handleUser = (u: FirebaseAuthTypes.User | null) => {
-    if (!mounted.current) return;
-    setUser(u);
-    if (loading) setLoading(false);
-  };
-
-  // Core listeners
   useEffect(() => {
     mounted.current = true;
-    const unsubState = onAuthStateChanged(auth, handleUser);
-    const unsubToken = onIdTokenChanged(auth, handleUser);
+    const unsub = onAuthStateChanged(firebaseAuth, (u) => {
+      if (!mounted.current) return;
+      setUser(u);
+      setLoading(false);
+    });
     return () => {
       mounted.current = false;
-      unsubState();
-      unsubToken();
+      unsub();
     };
-  }, []);
+  }, [firebaseAuth]);
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", async (state) => {
-      if (state === "active") {
+      if (state !== "active") return;
+
+      const a = getAuth();
+      const current = a.currentUser;
+      if (!current) return;
+
+      try {
+        await reload(current);
+        // Optional, force refresh the ID token if you need it
+        // await current.getIdToken(true);
+      } catch (e) {
+        // If the user was deleted on the server or the token is invalid, reload can throw
         try {
-          await reload(user!);
-        } catch {
-          // If the user was deleted on the server, reload throws.
-          await signOut(auth);
-          setUser(null);
+          await a.signOut();
+        } finally {
+          if (mounted.current) setUser(null);
         }
       }
     });

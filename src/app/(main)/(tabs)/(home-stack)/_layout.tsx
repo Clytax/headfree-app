@@ -8,6 +8,8 @@ import { useRouter, Stack } from "expo-router";
 import Text from "@/components/common/Text";
 import MyTouchableOpacity from "@/components/common/Buttons/MyTouchableOpacity";
 
+// Assets
+import { Settings } from "lucide-react-native";
 // Constants
 import { Colors, Sizes } from "@/constants";
 
@@ -15,16 +17,32 @@ import { Colors, Sizes } from "@/constants";
 import { wp, hp } from "@/utils/ui/sizes";
 import { getFontSize } from "@/utils/text/fonts";
 
+// Context
+import { useAuth } from "@/context/auth/AuthContext";
 // Types
 
 const HomeStack = () => {
   const router = useRouter();
+  const { user } = useAuth();
+
+  const onSettings = () => {};
   return (
     <Stack>
       <Stack.Screen
         name="index"
         options={{
           title: "Home",
+          headerStyle: {
+            backgroundColor: Colors.neutral800,
+          },
+          headerLeft: () => (
+            <Text fontWeight="bold">Hi {user?.displayName ?? ""}</Text>
+          ),
+          headerRight: () => (
+            <MyTouchableOpacity onPress={onSettings}>
+              <Settings color={Colors.neutral200} size={hp(2.5)} />
+            </MyTouchableOpacity>
+          ),
         }}
       />
     </Stack>

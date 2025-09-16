@@ -26,17 +26,14 @@ const OnboardingEmergencyBrightness = () => {
 
     const init = async () => {
       try {
-        // iOS does not require permissions for system brightness
         const sys = await Brightness.getSystemBrightnessAsync();
         if (!mounted) return;
         initialSystemRef.current = sys;
 
-        // If no saved value, start from current system level
         if (typeof saved !== "number") {
           setValue(sys);
         }
 
-        // Optional keep app brightness in sync for a consistent look
         await Brightness.setBrightnessAsync(
           typeof saved === "number" ? saved : sys
         );
@@ -47,23 +44,17 @@ const OnboardingEmergencyBrightness = () => {
 
     init();
 
-    // Restore previous system brightness on unmount
+    // parent sheet is responsible for restore now
     return () => {
       mounted = false;
-      const prev = initialSystemRef.current;
-      if (Platform.OS === "ios" && typeof prev === "number") {
-        Brightness.setSystemBrightnessAsync(prev).catch(() => {});
-      }
     };
   }, []);
 
   const apply = useCallback(async (v: number) => {
     try {
-      // System wide preview
       if (Platform.OS === "ios") {
         await Brightness.setSystemBrightnessAsync(v);
       }
-      // App level for consistency
       await Brightness.setBrightnessAsync(v);
     } catch {
       // ignore
@@ -81,27 +72,18 @@ const OnboardingEmergencyBrightness = () => {
 
   return (
     <View style={styles.container}>
-      <Text
-        fontSize={18}
-        fontWeight="bold"
-        color={Colors.textDark}
-        style={styles.title}
-      >
-        Global screen brightness for emergency mode
-      </Text>
+      <View style={styles.row}>
+        <Text>Brightness</Text>
 
-      <Text color={Colors.textMuted} style={styles.helper}>
-        Move the slider to preview the real device brightness
-      </Text>
-
-      <Text
-        fontSize={16}
-        fontWeight="bold"
-        color={Colors.textDark}
-        style={styles.value}
-      >
-        {Math.round(value * 100)}%
-      </Text>
+        <Text
+          fontSize={16}
+          fontWeight="bold"
+          color={Colors.textDark}
+          style={styles.value}
+        >
+          {Math.round(value * 100)}%
+        </Text>
+      </View>
 
       <Slider
         style={styles.slider}
@@ -121,9 +103,10 @@ const OnboardingEmergencyBrightness = () => {
 export default OnboardingEmergencyBrightness;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 16, paddingTop: 12 },
+  container: { flex: 1, paddingTop: 12 },
   title: { marginBottom: 6 },
   helper: { marginBottom: 12 },
   value: { marginBottom: 8 },
   slider: { width: "100%", height: 40 },
+  row: { flexDirection: "row", justifyContent: "space-between" },
 });

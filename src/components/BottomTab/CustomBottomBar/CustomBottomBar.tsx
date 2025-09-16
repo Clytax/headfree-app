@@ -118,6 +118,7 @@ export default function MyTabBar({
             fill={barColor}
             stroke={borderTopColor}
             strokeWidth={StyleSheet.hairlineWidth}
+            fillRule="evenodd"
           />
         </Svg>
       )}

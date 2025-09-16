@@ -30,7 +30,9 @@ export function useOnboardingStatus(uid?: string | null) {
     queryFn: async () => {
       const ref = doc(db, "users", uid!);
       const snap = await getDoc(ref);
-      return snap.exists() ? !!snap.data()?.onboardingCompleted : false;
+      return snap.exists()
+        ? !!snap.data()?.analytics?.onboardingCompleted
+        : false;
     },
   });
 
@@ -40,7 +42,7 @@ export function useOnboardingStatus(uid?: string | null) {
       const ref = doc(db, "users", uid);
       const unsubscribe = onSnapshot(ref, (snap) => {
         const value = snap.exists()
-          ? !!snap.data()?.onboardingCompleted
+          ? !!snap.data()?.analytics?.onboardingCompleted
           : false;
         queryClient.setQueryData(queryKey, value);
       });

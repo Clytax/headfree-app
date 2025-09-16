@@ -21,20 +21,21 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
 } from "@react-native-firebase/auth";
-import firestore, {
+import {
   setDoc,
   doc,
   serverTimestamp,
   getFirestore,
 } from "@react-native-firebase/firestore";
 import { FirebaseError } from "firebase/app";
+
 // Components
 import AuthAGB from "@/components/common/Policy/AuthAGB";
 import Text from "@/components/common/Text";
 import SafeAreaContainer from "@/components/common/Container/SafeAreaContainer";
-import MyTouchableOpacity from "@/components/common/Buttons/MyTouchableOpacity";
 import SimpleButton from "@/components/common/Buttons/SimpleButton";
 import MyInput from "@/components/common/Input";
+
 // Constants
 import { Colors, Sizes } from "@/constants";
 
@@ -42,7 +43,8 @@ import { Colors, Sizes } from "@/constants";
 import { wp, hp } from "@/utils/ui/sizes";
 import { getFontSize } from "@/utils/text/fonts";
 
-// Assets
+// Models
+import { createEmptyUser } from "@/utils/firebase/user";
 
 // Types
 type SignUpFormType = z.infer<typeof SignUpSchema>;
@@ -50,7 +52,7 @@ type SignUpFormType = z.infer<typeof SignUpSchema>;
 const SignUp = () => {
   const router = useRouter();
 
-  const headerHeight = useHeaderHeight(); // 0 if no header
+  const headerHeight = useHeaderHeight();
 
   const db = getFirestore();
   const auth = getAuth();
@@ -58,16 +60,14 @@ const SignUp = () => {
   const {
     control,
     handleSubmit,
-    getValues,
-    setValue,
-    getFieldState,
-    formState: { errors, isValid, isSubmitting }, // note: isSubmitting is typical here
+    formState: { errors, isSubmitting },
   } = useForm<SignUpFormType>({
     resolver: zodResolver(SignUpSchema),
     mode: "onSubmit",
     defaultValues: {
       email: "",
       password: "",
+      name: "",
     },
   });
 
@@ -81,25 +81,29 @@ const SignUp = () => {
 
       const user = userCredential.user;
 
-      // set displayName if provided
       if (data.name) {
         await updateProfile(user, {
           displayName: data.name,
         });
       }
 
+      const base = createEmptyUser(user.uid);
+
       await setDoc(
         doc(db, "users", user.uid),
         {
-          onboardingCompleted: false,
-
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
+          ...base,
+          // override analytics times with server timestamps
+          analytics: {
+            ...base.analytics,
+            accountCreated: serverTimestamp() as unknown as string,
+            lastActive: serverTimestamp() as unknown as string,
+          },
         },
         { merge: true }
       );
 
-      console.log("User registered:", user);
+      // router.replace("/onboarding"); // optional route
     } catch (error: any) {
       const err = error as FirebaseError;
       alert("Registration failed: " + err.message);
@@ -112,7 +116,6 @@ const SignUp = () => {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
-        // a little more space
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -136,7 +139,7 @@ const SignUp = () => {
             </View>
 
             <View style={styles.inputs}>
-              {/* Name *Optional* */}
+              {/* Name Optional */}
               <Controller
                 control={control}
                 name="name"
@@ -164,13 +167,13 @@ const SignUp = () => {
                 render={({ field: { onChange, onBlur, value } }) => (
                   <MyInput
                     loading={isSubmitting}
-                    label="E-Mail"
+                    label="E Mail"
                     placeholder="name@email.com"
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
                     keyboardType="email-address"
-                    autoCapitalize="none" // ← was "words"
+                    autoCapitalize="none"
                     autoCorrect={false}
                     autoComplete="email"
                     textContentType="emailAddress"
@@ -219,7 +222,7 @@ const SignUp = () => {
                 loading={isSubmitting}
               />
               <Text fontSize={getFontSize(12)} textCenter>
-                Already have an account?{" "}
+                Already have an account{" "}
                 <Text
                   fontSize={getFontSize(13)}
                   onPress={() => !isSubmitting && router.replace("/(auth)")}
@@ -242,7 +245,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Sizes.containerPaddingHorizontal,
   },
-
   inputs: {
     gap: hp(2),
     marginBottom: hp(5),

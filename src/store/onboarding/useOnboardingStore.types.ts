@@ -23,14 +23,14 @@ export type OnboardingMigraineProfileSetup = {
   gender: "male" | "female" | "diverse" | null;
 
   // Profile
-  meals: number; // 0 = Fasting, Average meals per day
-  caffeine: number; // 0=0, 1 = 1-2, 2  = 3+ Average cups of coffee per day
-  sleepDuration: number; // 0 <5 ,1 = 5 -6 , 2= 6-7 , 3= 7 -8  , 4 >8. Average Sleep hours per day
-  waterIntake: number; // 0 = <1, 1 = 1-2, 2 = 2-3, 3 = 3+, Average Water intake in Liters per day
-  stress: number; // Average Stress level (Likert scale 1-5)
+  meals: number | null; // 0 = Fasting, Average meals per day
+  caffeine: number | null; // 0=0, 1 = 1-2, 2  = 3+ Average cups of coffee per day
+  sleepDuration: number | null; // 0 <5 ,1 = 5 -6 , 2= 6-7 , 3= 7 -8  , 4 >8. Average Sleep hours per day
+  waterIntake: number | null; // 0 = <1, 1 = 1-2, 2 = 2-3, 3 = 3+, Average Water intake in Liters per day
+  stress: number | null; // Average Stress level (Likert scale 1-5)
 
   // Optional Profile
-  wheaterSensitivity: boolean; // Sensitivity to weather changes
+  wheaterSensitivity: number | null; // Sensitivity to weather changes
   exercise: number | null; // null = prefer not to say,
   alcohol: number | null; // 0 = Never, 1 = once a month, 2 = once a week, 3 = almost every day
   smoking: number | null; // 0 = no, 1 = sometimes, 2 = regularly
@@ -39,6 +39,21 @@ export type OnboardingMigraineProfileSetup = {
   cycle: {
     data: JSON | any | null;
     lastUpdate: Date | null;
+  } | null;
+
+  // Auto
+  location: {
+    city: string | null;
+    country: string | null;
+    isoCountryCode: string | null;
+    admin: string | null;
+    coords: {
+      lat: number | null;
+      lon: number | null;
+      latRounded: number | null;
+      lonRounded: number | null;
+    } | null;
+    updatedAt: string | null;
   } | null;
 };
 
@@ -49,6 +64,7 @@ export type OnboardingSteps =
   | "emergencySetup"
   | "migraineProfile"
   | "migraineDataSources"
+  | "notifications"
   | "done";
 
 export const defaultData: OnboardingData = {
@@ -66,7 +82,20 @@ export const defaultData: OnboardingData = {
     mutePhone: false,
   },
 
-  migraineProfile: null,
+  migraineProfile: {
+    ageRange: null,
+    alcohol: null,
+    caffeine: null,
+    cycle: null,
+    exercise: null,
+    gender: null,
+    meals: null,
+    sleepDuration: null,
+    smoking: null,
+    stress: null,
+    waterIntake: null,
+    wheaterSensitivity: null,
+  },
 };
 
 export type OnboardingState = {

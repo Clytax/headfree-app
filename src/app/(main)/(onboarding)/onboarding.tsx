@@ -7,6 +7,8 @@ import Animated, {
   FadeOut,
   FadeOutDown,
 } from "react-native-reanimated";
+import { format, formatISO } from "date-fns";
+
 import { useRouter } from "expo-router";
 import { getAuth, signOut } from "@react-native-firebase/auth";
 import { shallow } from "zustand/shallow";
@@ -35,6 +37,18 @@ import { Colors, Sizes } from "@/constants";
 // Utils
 import { hp } from "@/utils/ui/sizes";
 import { getFontSize } from "@/utils/text/fonts";
+import { useAuth } from "@/context/auth/AuthContext";
+
+// Firebase
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  setDoc,
+  serverTimestamp,
+} from "@react-native-firebase/firestore";
+import { OnboardingMigraineProfileSetup } from "@/store/onboarding/useOnboardingStore.types";
+import OnboardingNotifications from "@/components/Onboarding/OnboardingNotifications/OnboardingNotifications";
 
 type Step =
   | "Welcome"
@@ -43,8 +57,9 @@ type Step =
   | "emergencySetup"
   | "migraineProfile"
   | "migraineDataSources"
+  | "notifications"
   | "done";
-
+const db = getFirestore();
 const stepComponents: Record<Step, () => React.ReactElement> = {
   Welcome: () => <OnboardingWelcome />,
   promises: () => <OnboardingPromises />,
@@ -52,6 +67,7 @@ const stepComponents: Record<Step, () => React.ReactElement> = {
   emergencySetup: () => <OnboardingEmergency />,
   migraineProfile: () => <OnboardingProfile />,
   migraineDataSources: () => <OnboardingDataSources />,
+  notifications: () => <OnboardingNotifications />,
   done: () => <OnboardingFinish />,
 };
 
@@ -59,7 +75,8 @@ const Onboarding = () => {
   const router = useRouter();
 
   const current = useOnboardingStore((s) => s.currentStep(), shallow) as Step;
-
+  const data = useOnboardingStore((s) => s.data);
+  const user = useAuth()?.user;
   const NextLabel = useMemo(() => {
     if (current === "emergencySetup") return "Setup now";
     if (current === "done") return "Finish";
@@ -74,10 +91,71 @@ const Onboarding = () => {
       console.warn("Logout failed", err);
     }
   }, []);
+  const handleFinish = useCallback(async () => {
+    const { data } = useOnboardingStore.getState();
 
-  const handleFinish = useCallback(() => {
-    // Write completed flag to backend
-  }, []);
+    const consentTimeStamp = formatISO(new Date());
+    const mp = data?.migraineProfile as
+      | OnboardingMigraineProfileSetup
+      | undefined;
+    const em = data?.emergencySetup ?? {};
+    const pol = data?.policy ?? {};
+
+    if (!user) {
+      console.warn("No user found, cannot finish onboarding");
+      return;
+    }
+
+    const userDocRef = doc(db, "users", user.uid);
+    const userDocSnap = await getDoc(userDocRef);
+
+    const exists = userDocSnap.exists();
+    const prevData = exists
+      ? (userDocSnap.data() as { analytics?: any })
+      : undefined;
+    const prevAnalytics = prevData?.analytics ?? {};
+
+    const finalDoc = {
+      policy: {
+        consentVersion: "1.0",
+        consentTimeStamp,
+        hasConsented: Boolean(pol?.accepted),
+        hasConsentedToOptional: Boolean(pol?.optionalAccepted),
+        deletionRequested: false,
+        lastDataExport: null,
+      },
+      profile: {
+        ageRange: mp?.ageRange ?? null,
+        gender: mp?.gender ?? null,
+        ...(mp?.location ? { location: mp.location } : { location: null }),
+      },
+      emergency: {
+        brightness: em?.brightness ?? null,
+        mutePhone: em?.mutePhone ?? null,
+      },
+      baseline: {
+        meals: mp?.meals ?? null,
+        caffeine: mp?.caffeine ?? null,
+        sleepDuration: mp?.sleepDuration ?? null,
+        waterIntake: mp?.waterIntake ?? null,
+        stress: mp?.stress ?? null,
+        wheaterSensitivity: mp?.wheaterSensitivity ?? null,
+        exercise: mp?.exercise ?? null,
+        alcohol: mp?.alcohol ?? null,
+        smoking: mp?.smoking ?? null,
+      },
+      analytics: {
+        ...prevAnalytics,
+        onboardingCompleted: true,
+      },
+    };
+
+    await setDoc(
+      userDocRef,
+      { ...finalDoc, updatedAt: serverTimestamp() },
+      { merge: true }
+    );
+  }, [user]);
 
   const CurrentStep = stepComponents[current];
 

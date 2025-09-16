@@ -26,7 +26,7 @@ const HEIGHTS: Record<SimpleButtonSize, number> = {
 };
 
 const FONT_SIZES: Record<SimpleButtonSize, number> = {
-  sm: getFontSize(11),
+  sm: getFontSize(14),
   md: getFontSize(20),
   lg: getFontSize(15),
 };
@@ -36,12 +36,12 @@ function getVariantStyles(variant: SimpleButtonVariant) {
     case "secondary":
       return {
         container: {
-          backgroundColor: Colors.white,
+          backgroundColor: "transparent", // no fill
           borderWidth: 1,
-          borderColor: Colors.secondary,
+          borderColor: Colors.secondary200, // white border
         } as ViewStyle,
-        text: { color: Colors.secondary } as TextStyle,
-        spinnerColor: Colors.secondary,
+        text: { color: Colors.secondary200 } as TextStyle, // white text
+        spinnerColor: Colors.secondary, // spinner matches text
       };
     case "primary":
     default:

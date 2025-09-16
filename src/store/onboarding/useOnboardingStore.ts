@@ -21,6 +21,7 @@ export const defaultSteps: OnboardingSteps[] = [
   "emergencySetup",
   "migraineProfile",
   "migraineDataSources",
+  "notifications",
   "done",
 ];
 export const useOnboardingStore = createWithEqualityFn<OnboardingState>()(

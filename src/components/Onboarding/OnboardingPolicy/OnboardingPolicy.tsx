@@ -70,7 +70,7 @@ const OnboardingPolicy: React.FC = () => {
         {/* 0 */}
         <AnimatedText
           entering={enter(BASE_DELAY + STEP * 0)}
-          exiting={exit(BASE_DELAY / 2 + STEP * 0)}
+          exiting={exit(0)}
           textCenter
           fontSize={getFontSize(15)}
           accessibilityRole="text"
@@ -85,7 +85,7 @@ const OnboardingPolicy: React.FC = () => {
         {/* 1 */}
         <Animated.View
           entering={enter(BASE_DELAY + STEP * 1)}
-          exiting={exit(BASE_DELAY / 2 + STEP * 1)}
+          exiting={exit(0)}
         >
           <OnboardingPolicyProcess />
         </Animated.View>
@@ -95,7 +95,7 @@ const OnboardingPolicy: React.FC = () => {
         {/* 2 */}
         <Animated.View
           entering={enter(BASE_DELAY + STEP * 2)}
-          exiting={exit(BASE_DELAY / 2 + STEP * 2)}
+          exiting={exit(0)}
         >
           <OnboardingPolicyUseFor />
         </Animated.View>
@@ -105,7 +105,7 @@ const OnboardingPolicy: React.FC = () => {
         {/* 3 */}
         <Animated.View
           entering={enter(BASE_DELAY + STEP * 3)}
-          exiting={exit(BASE_DELAY / 2 + STEP * 3)}
+          exiting={exit(0)}
         >
           <OnboardingPolicyHandle />
         </Animated.View>
@@ -115,7 +115,7 @@ const OnboardingPolicy: React.FC = () => {
         {/* 4 */}
         <Animated.View
           entering={enter(BASE_DELAY + STEP * 4)}
-          exiting={exit(BASE_DELAY / 2 + STEP * 4)}
+          exiting={exit(0)}
         >
           <OnboardingPolicyCheck
             label="Required consent"
@@ -132,7 +132,7 @@ const OnboardingPolicy: React.FC = () => {
         {/* 5 */}
         <Animated.View
           entering={enter(BASE_DELAY + STEP * 5)}
-          exiting={exit(BASE_DELAY / 2 + STEP * 5)}
+          exiting={exit(0)}
         >
           <OnboardingPolicyCheck
             label="Optional consent"

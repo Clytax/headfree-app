@@ -74,6 +74,8 @@ const FinalColors = {
   secondaryDark: BaseColors.secondary700,
 
   background: BaseColors.neutral900,
+  backgroundLighter: BaseColors.neutral800,
+  border: BaseColors.neutral500,
 
   text: BaseColors.neutral100,
   textDark: BaseColors.neutral700,
