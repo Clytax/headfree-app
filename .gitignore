@@ -42,3 +42,7 @@ app-example
 # Service Files
 GoogleService-Info.plist
 google-services.json
+
+
+ios
+android
