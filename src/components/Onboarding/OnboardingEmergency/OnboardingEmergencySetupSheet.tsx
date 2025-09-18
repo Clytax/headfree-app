@@ -27,6 +27,7 @@ import { Colors, Sizes } from "@/constants";
 // Setup
 import OnboardingEmergencyMute from "@/components/Onboarding/OnboardingEmergency/OnboardingEmergencyMute";
 import OnboardingEmergencyBrightness from "@/components/Onboarding/OnboardingEmergency/OnboardingEmergencyBrightness";
+import OnboardingEmergencyAnimations from "@/components/Onboarding/OnboardingEmergency/OnboardingEmergencyAnimation";
 
 export type EmergencySetupSheetHandle = {
   present: () => void;
@@ -48,7 +49,7 @@ const EmergencyFooter = memo(function EmergencyFooter({
   bottomInset: number;
   onSaveContinue: () => void;
   onClose: () => void;
-  footerProps?: BottomSheetFooterProps;
+  footerProps: BottomSheetFooterProps;
 }) {
   return (
     <BottomSheetFooter bottomInset={bottomInset} {...footerProps}>
@@ -206,6 +207,8 @@ const EmergencySetupSheet = forwardRef<EmergencySetupSheetHandle, Props>(
             <OnboardingEmergencyBrightness />
             <View style={styles.divider} />
             <OnboardingEmergencyMute />
+            <View style={styles.divider} />
+            <OnboardingEmergencyAnimations />
             <View style={styles.divider} />
 
             <View style={{ height: 400 }} />

@@ -132,6 +132,7 @@ const Onboarding = () => {
       emergency: {
         brightness: em?.brightness ?? null,
         mutePhone: em?.mutePhone ?? null,
+        noAnimations: em?.noAnimations ?? null,
       },
       baseline: {
         meals: mp?.meals ?? null,

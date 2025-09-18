@@ -6,6 +6,7 @@ export interface IUserDoc {
   emergency: IUserEmergencySettings | null;
   settings: IUserSettings | null;
   analytics: IUserAnalytics | null;
+  predictions?: IUserPrediction[] | null;
 }
 
 export interface IUserPrivacy {
@@ -69,6 +70,7 @@ export interface IUserEmergencySettings {
   mutePhone: boolean;
   music: boolean;
   musicType: "calm" | "upbeat" | "science" | null;
+  noAnimations: boolean;
 }
 
 export interface IUserSettings {
@@ -82,4 +84,10 @@ export interface IUserAnalytics {
   totalEntries: number;
   migraineDaysTracked: number;
   onboardingCompleted: boolean;
+}
+
+export interface IUserPrediction {
+  date: string; // YYYY-MM-DD
+  likelihood: number; // 0-1
+  relevantFactors: string[]; // list of factors
 }

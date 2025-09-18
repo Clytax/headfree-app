@@ -17,6 +17,7 @@ export const createEmptyUser = (
     profile: null,
     baseline: null,
     dailies: [],
+    predictions: [],
     emergency: {
       brightness: null,
       mutePhone: false,

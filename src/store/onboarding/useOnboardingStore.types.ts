@@ -17,6 +17,7 @@ export type OnboardingEmergencySetup = {
   music: boolean;
   musicType: "calm" | "upbeat" | "science" | null;
   mutePhone: boolean;
+  noAnimations: boolean;
 };
 
 export type OnboardingMigraineProfileSetup = {
