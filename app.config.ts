@@ -20,8 +20,8 @@ module.exports = ({ config }: ConfigContext): ExpoConfig => {
           "Headfree writes health data only if you enable a feature that needs it.",
       },
       bundleIdentifier: "com.clytax.headfree",
-      googleServicesFile:
-        process.env.IOS_FIREBASE_GOOGLE_SERVICE ?? "./GoogleService-Info.plist",
+      googleServicesFile: "./GoogleService-Info.plist",
+      // process.env.IOS_FIREBASE_GOOGLE_SERVICE ?? "./GoogleService-Info.plist",
     },
     android: {
       adaptiveIcon: {

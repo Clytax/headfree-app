@@ -33,6 +33,13 @@
       ],
       "expo-audio",
       [
+        "expo-video",
+        {
+          "supportsBackgroundPlayback": true,
+          "supportsPictureInPicture": true
+        }
+      ],
+      [
         "@kingstinct/react-native-healthkit",
         {
           "NSHealthShareUsageDescription": "Headfree reads health data to improve migraine risk predictions.",
@@ -45,7 +52,15 @@
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
       ],
+      [
+        "expo-live-activity",
+        {
+          "enablePushNotifications": true
+        }
+      ],
+      "expo-secure-store",
       "@react-native-firebase/app",
+
       "@react-native-firebase/auth"
     ],
     "experiments": {

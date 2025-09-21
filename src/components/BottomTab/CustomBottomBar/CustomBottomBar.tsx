@@ -6,14 +6,23 @@ import {
   TouchableOpacity,
   LayoutChangeEvent,
 } from "react-native";
+
+// Packages
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
+
+// Icons
 import { Feather } from "@expo/vector-icons";
 
+// Components
 import Text from "@/components/common/Text";
 import MyTouchableOpacity from "@/components/common/Buttons/MyTouchableOpacity";
+import EmergencyButton from "@/components/Emergency/EmergencyButton";
+// Constants
 import { Colors } from "@/constants";
+
+// Utils
 import { hp, wp } from "@/utils/ui/sizes";
 import { getFontSize } from "@/utils/text/fonts";
 
@@ -212,10 +221,7 @@ export default function MyTabBar({
       </View>
 
       {/* centered FAB */}
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate({ name: "(home-stack)", merge: true })
-        }
+      <EmergencyButton
         style={[
           styles.fab,
           {
@@ -223,19 +229,9 @@ export default function MyTabBar({
             height: fabSize,
             borderRadius: fabSize / 2,
             bottom: BAR_HEIGHT - fabRise,
-            backgroundColor: Colors.error,
           },
         ]}
-        activeOpacity={0.9}
-      >
-        <Text
-          color={Colors.neutral600}
-          fontWeight="bold"
-          fontSize={getFontSize(50)}
-        >
-          !
-        </Text>
-      </TouchableOpacity>
+      />
     </View>
   );
 }

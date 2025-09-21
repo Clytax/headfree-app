@@ -17,6 +17,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // Context
 import { AuthProvider, useAuth } from "@/context/auth/AuthContext";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { EmergencyProvider } from "@/context/emergency/EmergencyContext";
+
+// hook
 
 const qc = new QueryClient();
 const InitialLayout = () => {
@@ -25,7 +28,6 @@ const InitialLayout = () => {
   const { user, loading } = useAuth();
   const isLoaded = !loading;
   const isSignedIn = !!user;
-
   if (!isLoaded) return null;
 
   return (
@@ -46,7 +48,9 @@ export default function RootLayout() {
     <PrepareApp>
       <QueryClientProvider client={qc}>
         <AuthProvider>
-          <InitialLayout />
+          <EmergencyProvider>
+            <InitialLayout />
+          </EmergencyProvider>
         </AuthProvider>
       </QueryClientProvider>
     </PrepareApp>

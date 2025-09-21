@@ -62,7 +62,7 @@ export interface IUserDailyEntry {
   meals: number | null; // number of meals
   sleep: number | null; // in hours
   cycle: any | null; // cycle data
-  wheater: any | null; // wheater data
+  location: IUserLocation | null;
 }
 
 export interface IUserEmergencySettings {

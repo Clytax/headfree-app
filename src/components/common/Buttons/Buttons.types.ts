@@ -1,4 +1,4 @@
-import { StyleProp, ViewStyle } from "react-native";
+import { AccessibilityRole, StyleProp, ViewStyle } from "react-native";
 
 export interface MyTouchableOpacityProps {
   children: React.ReactNode;
@@ -7,6 +7,8 @@ export interface MyTouchableOpacityProps {
   disabled?: boolean;
   onPress?: any;
   onLayout?: any;
+  accessibilityRole?: AccessibilityRole;
+  accessibilityLabel?: string;
 }
 export type SimpleButtonVariant = "primary" | "secondary";
 export type SimpleButtonSize = "sm" | "md" | "lg";

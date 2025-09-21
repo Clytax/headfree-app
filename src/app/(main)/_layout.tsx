@@ -21,18 +21,36 @@ import { getFontSize } from "@/utils/text/fonts";
 // Context
 import { useAuth } from "@/context/auth/AuthContext";
 import { useOnboardingStatus } from "@/hooks/firebase/useOnboardingStatus";
+import { useEmergencyContext } from "@/context/emergency/EmergencyContext";
 
 const MainLayout = () => {
   const router = useRouter();
-
+  const { isEnabled, settings } = useEmergencyContext();
   const { user } = useAuth();
   const onboardingCompleted = useOnboardingStatus(user?.uid).data;
   const db = getFirestore();
 
   return (
-    <Stack>
+    <Stack
+      screenOptions={{
+        animation: isEnabled
+          ? settings?.noAnimations
+            ? "none"
+            : "default"
+          : "default",
+      }}
+    >
       <Stack.Protected guard={onboardingCompleted === true}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+        <Stack.Screen
+          name="emergency-mode"
+          options={{
+            headerShown: false,
+
+            presentation: "modal",
+          }}
+        />
       </Stack.Protected>
       <Stack.Protected guard={onboardingCompleted === false}>
         <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />

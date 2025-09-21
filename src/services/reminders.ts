@@ -31,7 +31,6 @@ export async function ensureAndroidChannel() {
 // Find any already scheduled daily reminder
 async function findExisting() {
   const all = await Notifications.getAllScheduledNotificationsAsync();
-  console.log(all);
   return all.find((n) => {
     const data = n.content?.data as any;
     const t = n.trigger as any;

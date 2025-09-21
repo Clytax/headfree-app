@@ -25,7 +25,6 @@ const HomeStack = () => {
   const router = useRouter();
   const { user } = useAuth();
 
-  const onSettings = () => {};
   return (
     <Stack>
       <Stack.Screen
@@ -37,11 +36,6 @@ const HomeStack = () => {
           },
           headerLeft: () => (
             <Text fontWeight="bold">Hi {user?.displayName ?? ""}</Text>
-          ),
-          headerRight: () => (
-            <MyTouchableOpacity onPress={onSettings}>
-              <Settings color={Colors.neutral200} size={hp(2.5)} />
-            </MyTouchableOpacity>
           ),
         }}
       />

@@ -34,8 +34,8 @@ const OnboardingEmergencyAnimations = () => {
   };
   return (
     <View style={styles.container}>
-      <Text>
-        Disable animations during Emergency (may help with light sensitivity)
+      <Text style={{ maxWidth: "70%" }}>
+        Disable animations during Emergency
       </Text>
       <Checkbox
         value={noAnimations}

@@ -325,7 +325,6 @@ const DailyEntry: React.FC = () => {
    */
   const isFormValid = useMemo((): boolean => {
     const requiredFields = [fullStore.stress, fullStore.water, fullStore.meals];
-    console.log(requiredFields);
     return requiredFields.some(
       (field) => field !== null && field !== undefined
     );
@@ -507,7 +506,6 @@ const DailyEntry: React.FC = () => {
       setIsSubmitting(false);
     }
   }, [uid, fullStore, isFormValid]);
-  console.log(isFormValid);
   return (
     <SafeAreaContainer style={styles.container}>
       <Text fontWeight="bold" fontSize={getFontSize(24)} textCenter>

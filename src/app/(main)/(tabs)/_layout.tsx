@@ -3,15 +3,18 @@ import React from "react";
 import { Tabs } from "expo-router";
 import MyTabBar from "@/components/BottomTab/CustomBottomBar/CustomBottomBar";
 import { useUser } from "@/hooks/firebase/useUser";
+import { useEmergencyContext } from "@/context/emergency/EmergencyContext";
+
+// Store
 
 export default function TabLayout() {
   const user = useUser();
-  const animationsDisabled = user?.data?.emergency?.noAnimations;
+  const { isEnabled, settings, animationForStacks } = useEmergencyContext();
+  console.log(isEnabled, settings, animationForStacks);
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        animation: animationsDisabled ? "none" : "shift",
       }}
       tabBar={(props) => <MyTabBar {...props} />}
     >

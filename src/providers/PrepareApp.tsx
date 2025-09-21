@@ -5,9 +5,10 @@ import { LogBox, StyleSheet } from "react-native";
 // Components
 import BaseToast from "@/components/common/BaseToast";
 import NotificationNavigator from "@/providers/NotificationNavigator";
-
 // Expo
 
+// Context
+import { EmergencyProvider } from "@/context/emergency/EmergencyContext";
 // Packages
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
