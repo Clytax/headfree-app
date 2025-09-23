@@ -1,3 +1,6 @@
+import { DailyEntryStore } from "@/store/global/daily/useDailyEntryStore.types";
+import { IMenstrualCycle, ISleepNight } from "@/types/health";
+
 export interface IUserDoc {
   privacy: IUserPrivacy;
   profile: IUserProfile | null;
@@ -53,16 +56,8 @@ export interface IUserBaseline {
   smoking: number | null; // 0 = no, 1 = sometimes, 2 = regularly
 }
 
-export interface IUserDailyEntry {
+export interface IUserDailyEntry extends DailyEntryStore {
   date: string; // YYYY-MM-DD
-  stress: number | null; // 1-5
-  water: number | null; // in Liters
-  caffeine: number | null; // in cups
-  neckPain: number | null; // 1-5
-  meals: number | null; // number of meals
-  sleep: number | null; // in hours
-  cycle: any | null; // cycle data
-  location: IUserLocation | null;
 }
 
 export interface IUserEmergencySettings {

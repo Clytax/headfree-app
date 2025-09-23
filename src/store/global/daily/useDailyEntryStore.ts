@@ -8,8 +8,14 @@ const initialState: DailyEntryStore = {
   neckPain: null,
   meals: null,
   sleep: null,
-  cycle: null,
   location: null,
+  menstrualCycle: null,
+  chocolateOrCheese: null,
+  overEating: null,
+  alcohol: null,
+  smoking: null,
+  traveled: null,
+  emotion: null,
 };
 
 type State = DailyEntryStore & {
@@ -18,12 +24,16 @@ type State = DailyEntryStore & {
     value: DailyEntryStore[K]
   ) => void;
   reset: () => void;
+  lastDate: string | null;
+  setLastDate: (iso: string) => void;
 };
 
 const useDailyEntryStore = create<State>((set) => ({
   ...initialState,
   updateEntryStore: (key, value) => set({ [key]: value } as Partial<State>),
   reset: () => set({ ...initialState }),
+  lastDate: null,
+  setLastDate: (iso) => set({ lastDate: iso }),
 }));
 
 export default useDailyEntryStore;

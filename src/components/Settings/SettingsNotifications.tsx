@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from "react";
-import { StyleSheet, View, Pressable, Platform } from "react-native";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { StyleSheet, View, Pressable, Platform, AppState } from "react-native";
 // Packages
 import * as Notifications from "expo-notifications";
 import { Checkbox } from "expo-checkbox";
@@ -73,6 +73,65 @@ const SettingsNotifications = () => {
     [updateSettings]
   );
 
+  // Check notification permissions and sync state
+  const checkAndSyncPermissions = useCallback(async () => {
+    if (!sendRemindersFromStore) return; // Don't check if user hasn't enabled reminders
+
+    const { status } = await Notifications.getPermissionsAsync();
+    const hasPermission = status === "granted";
+
+    // If permissions are denied but our state shows enabled, sync them
+    if (!hasPermission && sendReminders) {
+      setSendReminders(false);
+      persistSettings(false, time);
+
+      // Optionally show a toast to inform user
+      Toast.show({
+        type: "info",
+        text1: "Notifications disabled",
+        text2: "Please enable notifications in your device settings",
+        visibilityTime: 4000,
+      });
+    }
+    // If permissions are granted but our state shows disabled, and store shows enabled, re-enable
+    else if (hasPermission && !sendReminders && sendRemindersFromStore) {
+      setSendReminders(true);
+      await rescheduleIfNeeded(true, time.getHours(), time.getMinutes());
+    }
+  }, [sendReminders, sendRemindersFromStore, persistSettings, time]);
+
+  // Listen for app state changes (when user returns from settings)
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === "active") {
+        // Small delay to ensure permissions have been updated
+        setTimeout(checkAndSyncPermissions, 100);
+      }
+    };
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    // Also check on component mount
+    checkAndSyncPermissions();
+
+    return () => subscription?.remove();
+  }, [checkAndSyncPermissions]);
+
+  // Optional: Set up a notification permission listener (iOS only)
+  useEffect(() => {
+    if (Platform.OS === "ios") {
+      const subscription = Notifications.addNotificationReceivedListener(() => {
+        // This fires when a notification is received, indicating permissions are still granted
+        // You could use this as an additional check if needed
+      });
+
+      return () => subscription.remove();
+    }
+  }, []);
+
   const handleToggle = useCallback(
     async (next: boolean) => {
       setSendReminders(next);
@@ -105,27 +164,38 @@ const SettingsNotifications = () => {
       persistSettings(sendReminders, date);
       if (sendReminders) {
         await rescheduleIfNeeded(true, date.getHours(), date.getMinutes());
-        showSuccessToast();
+        showSuccessToast(date); // Pass the new date directly
       }
     },
     [persistSettings, sendReminders]
   );
 
-  const showSuccessToast = useCallback(() => {
-    if (sendReminders) {
-      Toast.show({
-        type: "success",
-        text1: "Reminder time updated",
-        text2: `You'll be notified daily at ${timeLabel}`,
-        visibilityTime: 4000,
-      });
-    }
-  }, [sendReminders, timeLabel]);
+  const showSuccessToast = useCallback(
+    (newTime?: Date) => {
+      if (sendReminders) {
+        // Use the passed time or fallback to current time state
+        const timeToUse = newTime || time;
+        const hh = timeToUse.getHours().toString().padStart(2, "0");
+        const mm = timeToUse.getMinutes().toString().padStart(2, "0");
+        const displayTime = `${hh}:${mm}`;
+
+        Toast.show({
+          type: "success",
+          text1: "Reminder time updated",
+          text2: `You'll be notified daily at ${displayTime}`,
+          visibilityTime: 4000,
+        });
+      }
+    },
+    [sendReminders, time]
+  );
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.sectionTitle}>Notifications</Text>
+        <Text style={styles.sectionTitle} fontWeight="bold">
+          Notifications
+        </Text>
         <Text style={styles.sectionHint}>
           Control daily reminders and pick your ideal time
         </Text>
@@ -189,6 +259,9 @@ const SettingsNotifications = () => {
 
 export default SettingsNotifications;
 
+// ... rest of your styles remain the same
+
+// ... rest of your styles remain the same
 const shadow = Platform.select({
   ios: {
     shadowColor: "#000",
@@ -212,9 +285,8 @@ const styles = StyleSheet.create({
     paddingTop: hp(2),
   },
   sectionTitle: {
-    fontSize: getFontSize(22),
-    fontWeight: "800",
-    color: Colors.white,
+    fontSize: getFontSize(20),
+    color: Colors.neutral200,
     letterSpacing: 0.2,
   },
   sectionHint: {

@@ -338,7 +338,7 @@ const BreathingExerciseWithAnimation: React.FC<
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.instructionContainer, instructionStyle]}>
+      <Animated.View style={[styles.instructionContainer]}>
         <Text
           fontSize={getFontSize(16)}
           color={Colors.text}

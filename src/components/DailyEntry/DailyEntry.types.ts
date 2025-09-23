@@ -8,12 +8,13 @@ export interface DailyEntryChoiceProps {
 }
 
 export interface DailyEntryDataSourceProps {
-  title: string;
-  description?: string;
-  icon?: React.ElementType;
   onConnect: () => void;
+  onRefresh?: () => void; // new
+  onDisconnect?: () => void; // new
+  description: string;
+  title: string;
+  icon?: React.ComponentType<any>;
   usages: string[];
-
-  isConnected: boolean;
+  isConnected?: boolean;
   isLoading?: boolean;
 }

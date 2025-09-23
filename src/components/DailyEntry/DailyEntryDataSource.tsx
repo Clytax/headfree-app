@@ -28,6 +28,8 @@ const ANIM_MS = 220;
 
 const DailyEntryDataSource = ({
   onConnect,
+  onDisconnect,
+  onRefresh,
   description,
   title,
   icon: Icon,
@@ -138,7 +140,7 @@ const DailyEntryDataSource = ({
               <Text fontWeight="bold" fontSize={getFontSize(16)}>
                 {title}
               </Text>
-              {Icon ? <Icon color={Colors.error200} /> : null}
+              {Icon ? <Icon color={Colors.secondary300} /> : null}
             </View>
           </Animated.View>
 
@@ -208,26 +210,53 @@ const DailyEntryDataSource = ({
               ))}
             </View>
 
-            <SimpleButton
-              title={isLoading ? "Loading..." : "Connect"} // Show loading text
-              variant="secondary"
-              size="sm"
-              rightIcon={
-                !isLoading && (
-                  <Animated.View
-                    entering={ZoomIn.delay(100)
-                      .springify()
-                      .damping(18)
-                      .stiffness(200)}
-                  >
-                    <CircleCheck color={Colors.secondary300} size={hp(2)} />
-                  </Animated.View>
-                )
-              }
-              onPress={onConnect}
-              disabled={isLoading} // Disable button when loading
-              contentStyle={{ marginBottom: Sizes.marginVerticalSmall / 1.5 }}
-            />
+            {!isConnected ? (
+              <SimpleButton
+                title={isLoading ? "Loading..." : "Connect"}
+                variant="secondary"
+                size="sm"
+                onPress={onConnect}
+                disabled={isLoading}
+                rightIcon={
+                  !isLoading ? (
+                    <Animated.View
+                      entering={ZoomIn.delay(100)
+                        .springify()
+                        .damping(18)
+                        .stiffness(200)}
+                    >
+                      <CircleCheck color={Colors.secondary300} size={hp(2)} />
+                    </Animated.View>
+                  ) : undefined
+                }
+                contentStyle={{ marginBottom: Sizes.marginVerticalSmall / 1.5 }}
+              />
+            ) : (
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: wp(2),
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <SimpleButton
+                  title={isLoading ? "Loading..." : "Refresh"}
+                  variant="secondary"
+                  size="sm"
+                  onPress={onRefresh ?? onConnect}
+                  disabled={isLoading}
+                  contentStyle={{ flex: 1 }}
+                />
+                <SimpleButton
+                  title="Disconnect"
+                  contentStyle={{ flex: 1 }}
+                  size="sm"
+                  onPress={onDisconnect}
+                  disabled={isLoading}
+                />
+              </View>
+            )}
           </View>
         </View>
       </Animated.View>
