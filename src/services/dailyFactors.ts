@@ -1,15 +1,14 @@
 export type FactorKey =
   | "stress"
   | "emotion"
-  | "water"
   | "caffeine"
-  | "neckPain"
   | "meals"
   | "chocolateOrCheese"
   | "overEating"
   | "alcohol"
   | "smoking"
   | "traveled"
+  | "lightExposure"
   | "location"
   | "sleep"
   | "menstrualCycle";
@@ -59,20 +58,7 @@ export const FACTORS: readonly FactorMeta[] = [
       { value: 5, label: "😭 Very Negative" },
     ],
   },
-  {
-    key: "water",
-    kind: "choice",
-    required: true,
-    initial: null,
-    title: "Water Intake",
-    description: "How many liters of water did you drink",
-    choices: [
-      { value: 0, label: "💧 <1L" },
-      { value: 1, label: "💧 1–2L" },
-      { value: 2, label: "💧 2–3L" },
-      { value: 3, label: "💧 3L+" },
-    ],
-  },
+
   {
     key: "caffeine",
     kind: "choice",
@@ -85,18 +71,7 @@ export const FACTORS: readonly FactorMeta[] = [
       { value: 2, label: "☕ 3+ cups" },
     ],
   },
-  {
-    key: "neckPain",
-    kind: "choice",
-    initial: null,
-    title: "Neck Pain",
-    description: "Did you experience neck pain today",
-    choices: [
-      { value: 0, label: "😃 None" },
-      { value: 1, label: "😣 Mild" },
-      { value: 2, label: "😭 Severe" },
-    ],
-  },
+
   {
     key: "meals",
     kind: "choice",
@@ -169,6 +144,19 @@ export const FACTORS: readonly FactorMeta[] = [
     choices: [
       { value: false, label: "🛫 No" },
       { value: true, label: "🛫 Yes" },
+    ],
+  },
+  {
+    key: "lightExposure",
+    kind: "number",
+    initial: null,
+    required: false,
+    title: "Problematic Light",
+    description: "Were you bothed by light exposure today",
+    choices: [
+      { value: 0, label: "💡 No Issue" },
+      { value: 1, label: "💡 Mild discomfort (bright screens, fluorescents)" },
+      { value: 2, label: "💡 Significant exposure (harsh lighting, glare)" },
     ],
   },
   { key: "sleep", kind: "object", initial: null },

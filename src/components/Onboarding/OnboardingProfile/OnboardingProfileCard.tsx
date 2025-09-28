@@ -130,8 +130,9 @@ const ALL_OPTIONS: OptionConfig[] = [
     kind: "choice",
     choices: [
       { value: 0, label: "0" },
-      { value: 1, label: "1" },
-      { value: 2, label: "2" },
+      { value: 1, label: "1 to 2" },
+      { value: 2, label: "3" },
+      { value: 3, label: "4+" },
     ],
   },
   {
@@ -205,26 +206,26 @@ const ALL_OPTIONS: OptionConfig[] = [
   {
     id: "alcohol",
     title: "Alcohol",
-    description: "How many alcoholic drinks do you have per week",
+    description: "How often do you drink alcohol",
     required: false,
     kind: "choice",
     choices: [
-      { value: 0, label: "0" },
-      { value: 1, label: "1" },
-      { value: 2, label: "2" },
-      { value: 3, label: "3" },
+      { value: 0, label: "Never" },
+      { value: 1, label: "Once a month" },
+      { value: 2, label: "Once a week" },
+      { value: 3, label: "Almost every day" },
     ],
   },
   {
     id: "smoking",
     title: "Smoking",
-    description: "How many cigarettes or smoking sessions per day",
+    description: "Do you smoke?",
     required: false,
     kind: "choice",
     choices: [
-      { value: 0, label: "0" },
-      { value: 1, label: "1" },
-      { value: 2, label: "2" },
+      { value: 0, label: "No" },
+      { value: 1, label: "Sometimes" },
+      { value: 2, label: "Regularly" },
     ],
   },
 ];

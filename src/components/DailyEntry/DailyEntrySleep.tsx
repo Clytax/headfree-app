@@ -80,6 +80,7 @@ function summarizeSleep(samples: SleepSample[]) {
 
   let totalSleepMs = 0;
   let interruptions = 0;
+  const startTime = sorted[0]?.start || new Date();
 
   for (const s of sorted) {
     const dur = s.end.getTime() - s.start.getTime();

@@ -16,13 +16,14 @@ export const createEmptyUser = (
     },
     profile: null,
     baseline: null,
-    dailies: [],
-    predictions: [],
+    // dailies: [],
+    // predictions: [],
     emergency: {
-      brightness: null,
+      brightness: null, // 0-100
       mutePhone: false,
       music: false,
       musicType: null,
+      noAnimations: false,
     },
     settings: {
       reminderTime: null,

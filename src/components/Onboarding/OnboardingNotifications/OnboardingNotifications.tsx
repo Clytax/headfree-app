@@ -1,33 +1,35 @@
 // React and React Native Imports
-import React, { useMemo, useState, useCallback } from "react";
-import { StyleSheet, View, Pressable } from "react-native";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { StyleSheet, View, Pressable, Platform, AppState } from "react-native";
 
-// Third-Party Libraries
+// Packages
 import * as Notifications from "expo-notifications";
 import { Checkbox } from "expo-checkbox";
-import { useRouter } from "expo-router";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Animated from "react-native-reanimated";
+import Toast from "react-native-toast-message";
+
+// Animations
 import { enter, exit } from "@/utils/animation/onboardingAnimation";
-// Custom Components
+
+// Components
 import Text from "@/components/common/Text";
-import MyTouchableOpacity from "@/components/common/Buttons/MyTouchableOpacity";
 import OnboardingTop from "@/components/Onboarding/OnboardingTop";
 
-// Constants and Utilities
+// Constants
 import { Colors } from "@/constants";
+
+// Utils
 import { wp, hp } from "@/utils/ui/sizes";
 import { getFontSize } from "@/utils/text/fonts";
 import { useOnboardingStore } from "@/store/onboarding/useOnboardingStore";
 import { useNotifications } from "@/providers/NotificationProvider";
 import {
   cancelAllAppNotifications,
-  cancelDailyReminder,
   rescheduleIfNeeded,
-  scheduleDailyReminder,
 } from "@/services/reminders";
-const OnboardingNotifications = () => {
-  const router = useRouter();
 
+const OnboardingNotifications = () => {
   const updateSettings = useOnboardingStore((s) => s.updateSettings);
   const sendRemindersFromStore = useOnboardingStore(
     (s) => s.data.settings?.sendReminders
@@ -35,12 +37,12 @@ const OnboardingNotifications = () => {
   const reminderTimeFromStore = useOnboardingStore(
     (s) => s.data.settings?.reminderTime
   );
-
   const { requestAndRegister } = useNotifications();
 
   const [sendReminders, setSendReminders] = useState<boolean>(
     Boolean(sendRemindersFromStore)
   );
+
   const initialDate = useMemo(() => {
     if (typeof reminderTimeFromStore === "string") {
       const [hh, mm] = reminderTimeFromStore
@@ -56,10 +58,7 @@ const OnboardingNotifications = () => {
       }
     }
     const d = new Date();
-    d.setHours(8);
-    d.setMinutes(0);
-    d.setSeconds(0);
-    d.setMilliseconds(0);
+    d.setHours(8, 0, 0, 0);
     return d;
   }, [reminderTimeFromStore]);
 
@@ -84,6 +83,77 @@ const OnboardingNotifications = () => {
     [updateSettings]
   );
 
+  // Check notification permissions and sync state
+  const checkAndSyncPermissions = useCallback(async () => {
+    if (!sendRemindersFromStore) return;
+
+    const { status } = await Notifications.getPermissionsAsync();
+    const hasPermission = status === "granted";
+
+    if (!hasPermission && sendReminders) {
+      setSendReminders(false);
+      persistSettings(false, time);
+
+      Toast.show({
+        type: "info",
+        text1: "Notifications disabled",
+        text2: "Please enable notifications in your device settings",
+        visibilityTime: 4000,
+      });
+    } else if (hasPermission && !sendReminders && sendRemindersFromStore) {
+      setSendReminders(true);
+      await rescheduleIfNeeded(true, time.getHours(), time.getMinutes());
+    }
+  }, [sendReminders, sendRemindersFromStore, persistSettings, time]);
+
+  // Listen for app state changes
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === "active") {
+        setTimeout(checkAndSyncPermissions, 100);
+      }
+    };
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    checkAndSyncPermissions();
+
+    return () => subscription?.remove();
+  }, [checkAndSyncPermissions]);
+
+  // Optional iOS listener
+  useEffect(() => {
+    if (Platform.OS === "ios") {
+      const subscription = Notifications.addNotificationReceivedListener(() => {
+        // No op
+      });
+
+      return () => subscription.remove();
+    }
+  }, []);
+
+  const showSuccessToast = useCallback(
+    (newTime?: Date) => {
+      if (sendReminders) {
+        const timeToUse = newTime || time;
+        const hh = timeToUse.getHours().toString().padStart(2, "0");
+        const mm = timeToUse.getMinutes().toString().padStart(2, "0");
+        const displayTime = `${hh}:${mm}`;
+
+        Toast.show({
+          type: "success",
+          text1: "Reminder time updated",
+          text2: `You'll be notified daily at ${displayTime}`,
+          visibilityTime: 4000,
+        });
+      }
+    },
+    [sendReminders, time]
+  );
+
   const handleToggle = useCallback(
     async (next: boolean) => {
       setSendReminders(next);
@@ -99,14 +169,14 @@ const OnboardingNotifications = () => {
           }
         }
         await rescheduleIfNeeded(true, time.getHours(), time.getMinutes());
+        showSuccessToast();
       } else {
-        // nuke every planned notification
         await cancelAllAppNotifications();
       }
 
       persistSettings(next, time);
     },
-    [persistSettings, requestAndRegister, time]
+    [persistSettings, requestAndRegister, time, showSuccessToast]
   );
 
   const onConfirmTime = useCallback(
@@ -116,9 +186,10 @@ const OnboardingNotifications = () => {
       persistSettings(sendReminders, date);
       if (sendReminders) {
         await rescheduleIfNeeded(true, date.getHours(), date.getMinutes());
+        showSuccessToast(date);
       }
     },
-    [persistSettings, sendReminders]
+    [persistSettings, sendReminders, showSuccessToast]
   );
 
   return (
@@ -140,42 +211,49 @@ const OnboardingNotifications = () => {
           <Checkbox
             value={sendReminders}
             onValueChange={handleToggle}
-            color={sendReminders ? Colors.primary : undefined}
+            color={sendReminders ? Colors.primary : Colors.neutral400}
             style={styles.checkbox}
           />
           <View style={{ flex: 1 }}>
-            <Text style={styles.rowTitle}>Send daily reminders</Text>
+            <Text style={styles.rowTitle}>Daily reminders</Text>
             <Text style={styles.rowHint}>
-              We will notify you at your preferred time
+              Get notified at your preferred time each day
             </Text>
           </View>
         </View>
 
-        <Pressable
-          onPress={() => setPickerVisible(true)}
-          disabled={!sendReminders}
-          style={[styles.timeCard, !sendReminders && { opacity: 0.2 }]}
-        >
-          <View style={styles.timeLeft}>
-            <Text style={styles.timeLabel}>Reminder time</Text>
-            <Text style={styles.timeValue}>{timeLabel}</Text>
-          </View>
-          <View style={styles.timeRight}>
-            <Text style={styles.changeText}>Change</Text>
-          </View>
-        </Pressable>
+        {sendReminders && (
+          <View style={styles.timeCard}>
+            <Pressable
+              onPress={() => setPickerVisible(true)}
+              style={({ pressed }) => [
+                styles.timeSelector,
+                pressed && { opacity: 0.9 },
+              ]}
+            >
+              <View>
+                <Text style={styles.timeLabel}>Reminder time</Text>
+                <Text style={styles.timeValue}>{timeLabel}</Text>
+              </View>
 
-        <View style={{ flex: 1 }} />
+              <View style={styles.pillButton}>
+                <Text style={styles.pillButtonText}>Change</Text>
+              </View>
+            </Pressable>
+          </View>
+        )}
       </Animated.View>
 
-      {/* <DateTimePickerModal
+      <DateTimePickerModal
         isVisible={pickerVisible}
         mode="time"
         date={time}
         onConfirm={onConfirmTime}
         onCancel={() => setPickerVisible(false)}
         is24Hour
-      /> */}
+        themeVariant="dark"
+        isDarkModeEnabled
+      />
     </View>
   );
 };
@@ -187,7 +265,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: wp(6),
-    paddingTop: hp(2),
+    paddingTop: hp(0),
   },
   title: {
     fontSize: getFontSize(22),
@@ -208,62 +286,62 @@ const styles = StyleSheet.create({
     marginTop: hp(3),
   },
   checkbox: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
+    width: 26,
+    height: 26,
+    borderRadius: 8,
   },
   rowTitle: {
     fontSize: getFontSize(16),
-    fontWeight: "600",
+    fontWeight: "700",
     color: Colors.text,
   },
   rowHint: {
     fontSize: getFontSize(13),
-    color: Colors.neutral100,
+    color: Colors.neutral300,
     marginTop: 2,
+    lineHeight: 18,
   },
   timeCard: {
     marginTop: hp(2),
-    paddingHorizontal: wp(4),
-    paddingVertical: hp(2),
-    borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.neutral500,
     backgroundColor: Colors.backgroundLighter,
+    borderRadius: 16,
+    padding: wp(2),
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+  },
+  timeSelector: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(3),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  timeLeft: { flexDirection: "column" },
   timeLabel: {
     fontSize: getFontSize(13),
     color: Colors.text,
+    marginBottom: 2,
   },
   timeValue: {
-    marginTop: 4,
-    fontSize: getFontSize(18),
-    fontWeight: "700",
-    color: Colors.text,
+    fontSize: getFontSize(20),
+    fontWeight: "800",
+    color: Colors.primaryLight,
     letterSpacing: 0.5,
   },
-  timeRight: {
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(1),
-    borderRadius: 10,
-    backgroundColor: Colors.secondary700,
+  pillButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    backgroundColor: Colors.primary,
+    borderWidth: 1,
+    borderColor: Colors.primaryDark,
   },
-  changeText: {
+  pillButtonText: {
     fontSize: getFontSize(13),
-    color: Colors.neutral200,
-  },
-  cta: {
-    marginBottom: hp(3),
-    alignSelf: "stretch",
-  },
-  ctaText: {
-    textAlign: "center",
-    fontSize: getFontSize(16),
     fontWeight: "700",
     color: Colors.white,
+    letterSpacing: 0.3,
   },
 });

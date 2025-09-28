@@ -3,9 +3,7 @@ import { IUserLocation } from "@/types/user";
 
 export interface DailyEntryStore {
   stress: number | null;
-  water: number | null;
   caffeine: number | null;
-  neckPain: number | null;
   meals: number | null;
   chocolateOrCheese: number | null;
   overEating: number | null;
@@ -18,6 +16,7 @@ export interface DailyEntryStore {
   smoking: number | null;
 
   traveled: boolean | null;
+  lightExposure: number | null; // Hours of light exposure
 
   emotion: number | null; // Emotion level (Likert scale 1-5)
 }
