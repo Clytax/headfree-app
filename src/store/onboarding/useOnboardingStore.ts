@@ -111,7 +111,7 @@ function emptyMigraine(): OnboardingMigraineProfileSetup {
     sleepDuration: 0,
     waterIntake: 0,
     stress: 1,
-    wheaterSensitivity: false,
+    weatherSensitivity: false,
     exercise: null,
     alcohol: null,
     smoking: null,

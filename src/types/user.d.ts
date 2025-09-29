@@ -50,7 +50,7 @@ export interface IUserBaseline {
   stress: number | null; // Average Stress level (Likert scale 1-5)
 
   // Optional Profile
-  wheaterSensitivity: number | null; // Sensitivity to weather changes
+  weatherSensitivity: number | null; // Sensitivity to weather changes
   exercise: number | null; // null = prefer not to say,
   alcohol: number | null; // 0 = Never, 1 = once a month, 2 = once a week, 3 = almost every day
   smoking: number | null; // 0 = no, 1 = sometimes, 2 = regularly

@@ -44,14 +44,21 @@ export const isFormValid = (store: DailyEntryStore): boolean => {
   );
 };
 
-export const completionPercent = (store: DailyEntryStore): number => {
-  const total = FACTOR_KEYS.length;
-  let done = 0;
-  for (const key of FACTOR_KEYS) {
-    const v = (store as any)[key];
-    if (v !== null && v !== undefined) done += 1;
-  }
-  return Math.round((done / total) * 100);
+export const completionPercent = (
+  store: DailyEntryStore,
+  gender: string | null
+): number => {
+  const hasCycle = (gender ?? "").toLowerCase() === "female";
+  const keys = hasCycle
+    ? FACTOR_KEYS
+    : FACTOR_KEYS.filter((k) => k !== "menstrualCycle");
+  const done = keys.reduce((acc, k) => {
+    const v = (store as any)[k];
+    return acc + (v !== null && v !== undefined ? 1 : 0);
+  }, 0);
+
+  console.log(done);
+  return Math.round((done / keys.length) * 100);
 };
 
 export const mergeOrUpsertByDate = (

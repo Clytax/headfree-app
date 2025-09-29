@@ -140,7 +140,7 @@ const Onboarding = () => {
         sleepDuration: mp?.sleepDuration ?? null,
         waterIntake: mp?.waterIntake ?? null,
         stress: mp?.stress ?? null,
-        wheaterSensitivity: mp?.wheaterSensitivity ?? null,
+        weatherSensitivity: mp?.weatherSensitivity ?? null,
         exercise: mp?.exercise ?? null,
         alcohol: mp?.alcohol ?? null,
         smoking: mp?.smoking ?? null,

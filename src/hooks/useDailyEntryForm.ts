@@ -38,6 +38,7 @@ interface Params {
   lastDate: string | null;
   setLastDate: (d: string) => void;
   todaysEntry: any | null;
+  gender: string | null;
 }
 
 export const useDailyEntryForm = ({
@@ -47,6 +48,7 @@ export const useDailyEntryForm = ({
   lastDate,
   setLastDate,
   todaysEntry,
+  gender,
 }: Params) => {
   const TODAY_ISO = useTodayISO();
 
@@ -81,7 +83,10 @@ export const useDailyEntryForm = ({
   );
 
   const formValid = useMemo(() => isFormValid(fullStore), [fullStore]);
-  const percent = useMemo(() => completionPercent(fullStore), [fullStore]);
+  const percent = useMemo(
+    () => completionPercent(fullStore, gender),
+    [fullStore, gender]
+  );
   const pickValues = useCallback(() => pickFromStore(fullStore), [fullStore]);
 
   return {

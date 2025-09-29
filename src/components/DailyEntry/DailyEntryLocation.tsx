@@ -9,8 +9,6 @@ import { Colors } from "@/constants";
 export interface LocationCoordinates {
   lat: number;
   lon: number;
-  latRounded: number;
-  lonRounded: number;
 }
 
 export interface CityInfo {
@@ -109,10 +107,8 @@ const DailyEntryLocation: React.FC<Props> = ({ value, onChange, isBusy }) => {
           isoCountryCode: primary.isoCountryCode ?? null,
           admin: primary.region ?? primary.subregion ?? null,
           coords: {
-            lat: latitude,
-            lon: longitude,
-            latRounded: roundCoordinate(latitude),
-            lonRounded: roundCoordinate(longitude),
+            lat: roundCoordinate(latitude),
+            lon: roundCoordinate(longitude),
           },
           updatedAt: new Date().toISOString(),
         };
@@ -145,7 +141,7 @@ const DailyEntryLocation: React.FC<Props> = ({ value, onChange, isBusy }) => {
     return [
       `City: ${cityInfo.city ?? "Unknown"}`,
       `Country: ${cityInfo.isoCountryCode ?? cityInfo.country ?? "Unknown"}`,
-      `Coordinates: ${cityInfo.coords.latRounded}, ${cityInfo.coords.lonRounded}`,
+      `Coordinates: ${cityInfo.coords.lat}, ${cityInfo.coords.lon}`,
       ...LOCATION_CONFIG.baseUsages,
     ];
   }, [cityInfo]);

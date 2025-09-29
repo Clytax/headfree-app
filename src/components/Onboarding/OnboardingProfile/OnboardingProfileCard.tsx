@@ -20,7 +20,7 @@ type OptionId =
   | "sleepDuration"
   | "waterIntake"
   | "stress"
-  | "wheaterSensitivity"
+  | "weatherSensitivity"
   | "exercise"
   | "alcohol"
   | "smoking";
@@ -48,7 +48,7 @@ const RESET_DEFAULTS: Record<
   | "sleepDuration"
   | "waterIntake"
   | "stress"
-  | "wheaterSensitivity"
+  | "weatherSensitivity"
   | "exercise"
   | "alcohol"
   | "smoking",
@@ -59,7 +59,7 @@ const RESET_DEFAULTS: Record<
   sleepDuration: null,
   waterIntake: null,
   stress: null,
-  wheaterSensitivity: null, // store uses boolean
+  weatherSensitivity: null, // store uses boolean
   exercise: null,
   alcohol: null,
   smoking: null,
@@ -179,7 +179,7 @@ const ALL_OPTIONS: OptionConfig[] = [
     ],
   },
   {
-    id: "wheaterSensitivity",
+    id: "weatherSensitivity",
     title: "Weather sensitivity",
     description: "Do you notice symptoms getting worse with certain weather",
     required: false,
@@ -238,7 +238,7 @@ const TEST_VALUES = {
   sleepDuration: 3,
   waterIntake: 2,
   stress: 4,
-  wheaterSensitivity: true,
+  weatherSensitivity: true,
   exercise: 1,
   alcohol: 0,
   smoking: 0,
@@ -259,7 +259,7 @@ const OnboardingProfileCard = () => {
   const setValue = (id: OptionId, v: number | boolean | null) => {
     const patch: Partial<OnboardingMigraineProfileSetup> = {};
 
-    // if (id === "wheaterSensitivity") {
+    // if (id === "weatherSensitivity") {
     //   // store expects boolean
     //   if (v === null) {
     //     // do not overwrite boolean with null
@@ -267,7 +267,7 @@ const OnboardingProfileCard = () => {
     //     updateMigraineProfile({});
     //     return;
     //   }
-    //   patch.wheaterSensitivity = v === 1;
+    //   patch.weatherSensitivity = v === 1;
     //   updateMigraineProfile(patch);
     //   return;
     // }
@@ -297,8 +297,8 @@ const OnboardingProfileCard = () => {
   const readChoiceValue = (id: OptionId): number | null => {
     if (!values) return null;
 
-    // if (id === "wheaterSensitivity") {
-    //   const b = values.wheaterSensitivity;
+    // if (id === "weatherSensitivity") {
+    //   const b = values.weatherSensitivity;
     //   // map boolean to choice value
     //   return b === true ? 1 : b === false ? 0 : null;
     // }

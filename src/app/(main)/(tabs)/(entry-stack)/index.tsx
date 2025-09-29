@@ -68,8 +68,8 @@ const DailyEntry: React.FC = () => {
       lastDate,
       setLastDate,
       todaysEntry,
+      gender: user?.data?.profile?.gender || null,
     });
-
   const saveToday = useCallback(async () => {
     if (!uid) {
       Alert.alert(
