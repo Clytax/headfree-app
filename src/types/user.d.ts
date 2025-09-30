@@ -82,7 +82,16 @@ export interface IUserAnalytics {
 }
 
 export interface IUserPrediction {
-  date: string; // YYYY-MM-DD
-  likelihood: number; // 0-1
-  relevantFactors: string[]; // list of factors
+  features_used_encrypted: string; // encrypted base64 string
+  migraine_probability: number; // 0-1
+  model_version: string | null;
+  prediction_date: string; // YYYY-MM-DD
+  risk_level: "Low" | "Medium" | "High" | "Very High" | null;
+  top_risk_factors: IPredictionFactor[]; // sorted by importance desc
+}
+
+export interface IPredictionFactor {
+  feature: string;
+  importance: number; // 0-1
+  value: string | number | null;
 }

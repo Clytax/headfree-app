@@ -31,6 +31,7 @@ import { useAuth } from "@/context/auth/AuthContext";
 
 import { FACTORS } from "@/services/dailyFactors";
 import { useDailyEntryForm } from "@/hooks/useDailyEntryForm";
+import { useTodayEntry } from "@/hooks/firebase/useDailyEntry";
 
 const DailyEntry: React.FC = () => {
   const user = useUser();
@@ -42,23 +43,13 @@ const DailyEntry: React.FC = () => {
   const setLastDate = useDailyEntryStore((s) => s.setLastDate);
   const fullStore = useDailyEntryStore((s) => s);
 
-  const TODAY_ISO_LOCAL = new Date().toISOString().split("T")[0];
+  const {
+    todaysEntry,
+    hasSubmittedToday,
+    isLoading: isLoadingEntry,
+  } = useTodayEntry();
 
-  const [todaysEntry, setTodaysEntry] = useState<any | null>(null);
-  const [hasSubmittedToday, setHasSubmittedToday] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // live doc for today
-  useEffect(() => {
-    if (!uid) return;
-    const db = getFirestore();
-    const entryRef = doc(db, "users", uid, "dailies", TODAY_ISO_LOCAL);
-    const unsub = onSnapshot(entryRef, (snap) => {
-      setHasSubmittedToday(snap.exists);
-      setTodaysEntry(snap.exists ? { ...snap.data(), id: snap.id } : null);
-    });
-    return unsub;
-  }, [uid, TODAY_ISO_LOCAL]);
 
   const { TODAY_ISO, handleEntryChange, formValid, percent, pickValues } =
     useDailyEntryForm({

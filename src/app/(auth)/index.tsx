@@ -71,7 +71,6 @@ const SignIn = () => {
       await signInWithEmailAndPassword(getAuth(), email, password);
     } catch (e: any) {
       const err = e as FirebaseError;
-      console.log("Sign in error: ", err);
       alert("Sign in failed: " + err.message);
     }
   };

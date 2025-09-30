@@ -71,7 +71,6 @@ export const NotificationsProvider: React.FC<React.PropsWithChildren> = ({
 
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log("Notification response:", response);
         // Handle notification response (e.g., deep linking)
         // You can add custom logic here based on response.notification.request.content.data
       });
@@ -135,10 +134,8 @@ export const NotificationsProvider: React.FC<React.PropsWithChildren> = ({
       const { data: token } = await Notifications.getExpoPushTokenAsync({
         projectId,
       });
-      console.log(token);
 
       setExpoPushToken(token);
-      console.log("Expo push token:", token);
 
       // TODO: Send token to your backend
       // await sendTokenToBackend(token);

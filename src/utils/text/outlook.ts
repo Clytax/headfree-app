@@ -1,10 +1,7 @@
+import { formatFeatureName } from "@/components/Prediction/utils/predictionUtils";
+
 export const getOutlookRiskFactorsText = (factors: string[]) => {
-  const properFactors = factors.map((factor) => {
-    if (factor === "cycle") return "Menstrual Cycle";
-    if (factor === "stress") return "Stress";
-    if (factor === "sleep") return "Sleep";
-    return factor.charAt(0).toUpperCase() + factor.slice(1);
-  });
+  const properFactors = factors.map((factor) => formatFeatureName(factor));
 
   let baseText = "Today's risk is mainly influenced by your ";
 
@@ -13,7 +10,8 @@ export const getOutlookRiskFactorsText = (factors: string[]) => {
   } else if (properFactors.length === 2) {
     baseText += `${properFactors[0]} and ${properFactors[1]}.`;
   } else if (properFactors.length > 2) {
-    baseText += properFactors.join(" and ") + ".";
+    // For 3+ factors, join with commas and "and" before the last one
+    baseText += `${properFactors[0]}, ${properFactors[1]}, and ${properFactors[2]}.`;
   } else {
     baseText = "No significant risk factors today.";
   }

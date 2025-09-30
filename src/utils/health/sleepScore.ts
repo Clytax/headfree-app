@@ -48,7 +48,6 @@ export function computeSleepScore(samples: SleepSample[]): SleepScoreResult {
     const dur = Math.max(0, s.end.getTime() - s.start.getTime());
 
     const v = s.value;
-    console.log(CategoryValueSleepAnalysis.awake);
     const asleep =
       v === CategoryValueSleepAnalysis.asleepCore ||
       v === CategoryValueSleepAnalysis.asleepDeep ||

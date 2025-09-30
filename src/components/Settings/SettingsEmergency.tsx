@@ -71,7 +71,6 @@ const SettingsEmergency = () => {
         try {
           const db = getFirestore();
           const userDataRef = doc(db, "users", user.uid);
-          console.log({ [key]: value });
           await setDoc(
             userDataRef,
             {

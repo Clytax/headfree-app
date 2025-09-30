@@ -10,7 +10,6 @@ import { useEmergencyContext } from "@/context/emergency/EmergencyContext";
 export default function TabLayout() {
   const user = useUser();
   const { isEnabled, settings, animationForStacks } = useEmergencyContext();
-  console.log(isEnabled, settings, animationForStacks);
   return (
     <Tabs
       screenOptions={{

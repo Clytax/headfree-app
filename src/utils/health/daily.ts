@@ -57,7 +57,6 @@ export const completionPercent = (
     return acc + (v !== null && v !== undefined ? 1 : 0);
   }, 0);
 
-  console.log(done);
   return Math.round((done / keys.length) * 100);
 };
 

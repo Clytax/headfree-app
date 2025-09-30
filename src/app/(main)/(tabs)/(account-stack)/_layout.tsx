@@ -25,7 +25,6 @@ const AccountStack = () => {
   const router = useRouter();
   const user = useUser();
   const { isEnabled, settings, animationForStacks } = useEmergencyContext();
-  console.log("AccountStack -> settings", settings);
   const onSettings = () => {
     router.push("/(main)/(tabs)/(account-stack)/settings");
   };

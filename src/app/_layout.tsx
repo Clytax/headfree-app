@@ -31,7 +31,7 @@ const InitialLayout = () => {
   if (!isLoaded) return null;
 
   return (
-    <Stack>
+    <Stack >
       <Stack.Protected guard={isSignedIn}>
         <Stack.Screen name="(main)" options={{ headerShown: false }} />
       </Stack.Protected>
