@@ -20,7 +20,10 @@ const InitialState: React.FC<InitialStateProps> = ({
   onLater,
 }) => {
   return (
-    <BottomSheetScrollView style={styles.contentContainer}>
+    <BottomSheetScrollView
+      style={styles.contentContainer}
+      contentContainerStyle={{ paddingBottom: hp(4) }}
+    >
       <View style={styles.iconContainer}>
         <Calendar size={48} color={Colors.primary} />
       </View>

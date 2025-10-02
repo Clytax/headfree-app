@@ -18,6 +18,8 @@ import { wp, hp } from "@/utils/ui/sizes";
 import { getFontSize } from "@/utils/text/fonts";
 import { Settings } from "lucide-react-native";
 import { useUser } from "@/hooks/firebase/useUser";
+import { getAuth, signOut } from "@react-native-firebase/auth";
+import { Entypo } from "@expo/vector-icons";
 
 // Types
 
@@ -27,6 +29,11 @@ const AccountStack = () => {
   const { isEnabled, settings, animationForStacks } = useEmergencyContext();
   const onSettings = () => {
     router.push("/(main)/(tabs)/(account-stack)/settings");
+  };
+
+  const auth = getAuth();
+  const onLogout = async () => {
+    signOut(auth);
   };
 
   return (
@@ -59,6 +66,14 @@ const AccountStack = () => {
           },
 
           headerTintColor: Colors.text,
+          headerRight: () => (
+            <Entypo
+              name="log-out"
+              size={hp(2.5)}
+              color={Colors.error100}
+              onPress={onLogout}
+            />
+          ),
         }}
       />
     </Stack>

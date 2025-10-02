@@ -23,11 +23,16 @@ import { useAuth } from "@/context/auth/AuthContext";
 import { useOnboardingStatus } from "@/hooks/firebase/useOnboardingStatus";
 import { useEmergencyContext } from "@/context/emergency/EmergencyContext";
 
+// Hooks
+import { useUser } from "@/hooks/firebase/useUser";
+
 const MainLayout = () => {
   const router = useRouter();
   const { isEnabled, settings } = useEmergencyContext();
   const { user } = useAuth();
+  const userData = useUser();
   const onboardingCompleted = useOnboardingStatus(user?.uid).data;
+  const signedPolicy = !!userData?.data?.privacy?.hasConsented;
   const db = getFirestore();
 
   return (
@@ -41,16 +46,21 @@ const MainLayout = () => {
       }}
     >
       <Stack.Protected guard={onboardingCompleted === true}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Protected guard={!signedPolicy}>
+          <Stack.Screen name={"(policy)"} options={{ headerShown: false }} />
+        </Stack.Protected>
+        <Stack.Protected guard={signedPolicy}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
-        <Stack.Screen
-          name="emergency-mode"
-          options={{
-            headerShown: false,
+          <Stack.Screen
+            name="emergency-mode"
+            options={{
+              headerShown: false,
 
-            presentation: "modal",
-          }}
-        />
+              presentation: "modal",
+            }}
+          />
+        </Stack.Protected>
       </Stack.Protected>
       <Stack.Protected guard={onboardingCompleted === false}>
         <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
