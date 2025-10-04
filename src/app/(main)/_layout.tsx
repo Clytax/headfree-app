@@ -34,7 +34,7 @@ const MainLayout = () => {
   const onboardingCompleted = useOnboardingStatus(user?.uid).data;
   const signedPolicy = !!userData?.data?.privacy?.hasConsented;
   const db = getFirestore();
-
+  console.log(signedPolicy);
   return (
     <Stack
       screenOptions={{
@@ -45,7 +45,12 @@ const MainLayout = () => {
           : "default",
       }}
     >
-      <Stack.Protected guard={onboardingCompleted === true}>
+      <Stack.Protected guard={!onboardingCompleted}>
+        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+      </Stack.Protected>
+      <Stack.Protected
+        guard={onboardingCompleted === true && onboardingCompleted}
+      >
         <Stack.Protected guard={!signedPolicy}>
           <Stack.Screen name={"(policy)"} options={{ headerShown: false }} />
         </Stack.Protected>
@@ -61,9 +66,6 @@ const MainLayout = () => {
             }}
           />
         </Stack.Protected>
-      </Stack.Protected>
-      <Stack.Protected guard={onboardingCompleted === false}>
-        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
       </Stack.Protected>
     </Stack>
   );

@@ -90,7 +90,7 @@ export const useOnboardingStore = createWithEqualityFn<OnboardingState>()(
             settings: { ...(s.data.settings ?? {}), ...patch },
           },
         })),
-      reset: () => set({ steps: [], index: 0, data: defaultData }),
+      reset: () => set({ steps: defaultSteps, index: 0, data: defaultData }),
     }),
     {
       name: "onboarding_secure",

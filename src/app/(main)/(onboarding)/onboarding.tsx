@@ -75,6 +75,7 @@ const Onboarding = () => {
   const router = useRouter();
 
   const current = useOnboardingStore((s) => s.currentStep(), shallow) as Step;
+  const reset = useOnboardingStore((s) => s.reset);
   const data = useOnboardingStore((s) => s.data);
   const user = useAuth()?.user;
   const NextLabel = useMemo(() => {
@@ -82,6 +83,9 @@ const Onboarding = () => {
     if (current === "done") return "Finish";
     return "Continue";
   }, [current]);
+  useEffect(() => {
+    reset();
+  }, []); // Empty dependency array means this runs once on mount
 
   const onLogout = useCallback(async () => {
     try {
@@ -116,7 +120,7 @@ const Onboarding = () => {
     const prevAnalytics = prevData?.analytics ?? {};
 
     const finalDoc = {
-      policy: {
+      privacy: {
         consentVersion: "1.0",
         consentTimeStamp,
         hasConsented: Boolean(pol?.accepted),
