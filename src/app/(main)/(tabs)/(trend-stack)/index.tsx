@@ -14,15 +14,16 @@ import { Colors, Sizes } from "@/constants";
 // Utils
 import { wp, hp } from "@/utils/ui/sizes";
 import { getFontSize } from "@/utils/text/fonts";
+import SafeAreaContainer from "@/components/common/Container/SafeAreaContainer";
 
 // Types
 
 const Trend = () => {
   const router = useRouter();
   return (
-    <View style={styles.container}>
-      <Text>hi</Text>
-    </View>
+    <SafeAreaContainer style={styles.container}>
+      <Text textCenter>Coming Soon...</Text>
+    </SafeAreaContainer>
   );
 };
 
@@ -32,5 +33,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.background,
     flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

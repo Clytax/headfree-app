@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { Text as ReactText } from "react-native";
+import { AccessibilityRole, Text as ReactText } from "react-native";
 // Types
 import { TextProps } from "@/components/common/Text/Text.types";
 
@@ -21,18 +21,28 @@ const Text = forwardRef(
       children,
       style,
       fontWeight = "regular",
-      containerStyle,
       fontSize = getFontSize(16),
-      hasContainer = false,
       numberOfLines,
       ellipsis = false,
       multiline = false,
       onPress,
-      onContainerPress,
       uppercase = false,
       color = Colors.text,
       onLayout,
       textCenter = false,
+
+      // accessibility extras with sensible defaults
+      accessibilityLabel,
+      accessibilityHint,
+      accessibilityRole,
+      accessibilityState,
+      isDecorative = false,
+      announcePolite = false,
+      allowFontScaling = true,
+      maxFontSizeMultiplier = 2.0,
+      adjustsFontSizeToFit = false,
+      minimumFontScale = 0.85,
+      selectable,
 
       ...rest
     }: TextProps,
@@ -43,6 +53,10 @@ const Text = forwardRef(
       "_" +
       capitalizeFirstLetter(fontWeight.toLowerCase())
     }`;
+
+    const computedRole: AccessibilityRole | undefined =
+      accessibilityRole ?? (onPress ? "button" : "text");
+
     return (
       <ReactText
         ref={ref}
@@ -60,6 +74,23 @@ const Text = forwardRef(
         ellipsizeMode={ellipsis ? "tail" : "clip"}
         onPress={onPress}
         onLayout={onLayout}
+        // accessibility
+        accessibilityRole={computedRole}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={accessibilityState}
+        // hide from screen readers when decorative
+        accessibilityElementsHidden={isDecorative}
+        importantForAccessibility={isDecorative ? "no" : "auto"}
+        // dynamic type and scaling
+        allowFontScaling={allowFontScaling}
+        maxFontSizeMultiplier={maxFontSizeMultiplier}
+        adjustsFontSizeToFit={adjustsFontSizeToFit}
+        minimumFontScale={minimumFontScale}
+        // platform a11y announcements
+        accessibilityLiveRegion={announcePolite ? "polite" : "none"}
+        // misc
+        selectable={selectable}
         {...rest}
       >
         {children}

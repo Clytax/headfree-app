@@ -1,4 +1,10 @@
-import { StyleProp, TextStyle, ViewStyle } from "react-native";
+import {
+  AccessibilityRole,
+  AccessibilityState,
+  StyleProp,
+  TextStyle,
+  ViewStyle,
+} from "react-native";
 
 export interface TextProps {
   fontFamily?: "Inter";
@@ -23,7 +29,15 @@ export interface TextProps {
   // ACcessibility
   accessibilityLabel?: string;
   accessibilityHint?: string;
-  accessibilityRole?: "text" | "header" | "link" | "button";
+  accessibilityRole?: AccessibilityRole;
+  accessibilityState?: AccessibilityState;
+  isDecorative?: boolean;
+  announcePolite?: boolean;
+  allowFontScaling?: boolean;
+  maxFontSizeMultiplier?: number;
+  adjustsFontSizeToFit?: boolean;
+  minimumFontScale?: number;
+  selectable?: boolean;
 }
 
 export interface TextContainerProps {

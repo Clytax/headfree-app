@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View, Pressable, Alert } from "react-native";
 
 // Packages
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import {
   getFirestore,
   doc,
@@ -22,14 +22,19 @@ import { Colors, Sizes } from "@/constants";
 import { wp, hp } from "@/utils/ui/sizes";
 import { getFontSize } from "@/utils/text/fonts";
 import OnboardingPolicyHandle from "@/components/Onboarding/OnboardingPolicy/OnboardingPolicyHandle";
+
+// hooks
 import { useAuth } from "@/context/auth/AuthContext";
+import { useOnboardingStatus } from "@/hooks/firebase/useOnboardingStatus";
 
 const AcceptPolicyPage = () => {
   const router = useRouter();
+
   const [requiredAccepted, setRequiredAccepted] = useState(false);
   const [optionalAccepted, setOptionalAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const user = useAuth().user;
+  const onboardingCompleted = useOnboardingStatus(user?.uid).data;
 
   const handleAccept = async () => {
     if (!user?.uid) {
@@ -80,6 +85,10 @@ const AcceptPolicyPage = () => {
       setIsLoading(false);
     }
   };
+
+  if (!onboardingCompleted) {
+    return <Redirect href="/(main)/(onboarding)/onboarding" />;
+  }
 
   return (
     <SafeAreaContainer style={styles.container}>
