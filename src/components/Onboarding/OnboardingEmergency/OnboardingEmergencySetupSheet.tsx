@@ -204,7 +204,9 @@ const EmergencySetupSheet = forwardRef<EmergencySetupSheetHandle, Props>(
             >
               Emergency setup
             </Text>
-            <OnboardingEmergencyBrightness />
+            <OnboardingEmergencyBrightness
+              restoreBrightness={restoreBrightness}
+            />
             <View style={styles.divider} />
             <OnboardingEmergencyMute />
             <View style={styles.divider} />

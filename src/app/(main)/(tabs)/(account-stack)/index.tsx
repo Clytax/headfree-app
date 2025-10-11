@@ -21,13 +21,19 @@ import { Colors, Sizes } from "@/constants";
 import { wp, hp } from "@/utils/ui/sizes";
 import { getFontSize } from "@/utils/text/fonts";
 
+// Context
+import { useEmergencyContext } from "@/context/emergency/EmergencyContext";
+
 const Account = () => {
   const router = useRouter();
   const { user: authUser } = useAuth();
+  const { isEnabled, setEnabled } = useEmergencyContext();
+
   const user = useUser();
   const [isUpdating, setIsUpdating] = useState(false);
 
   const onSignOut = async () => {
+    setEnabled(false);
     await signOut(getAuth());
   };
 

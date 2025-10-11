@@ -1,37 +1,42 @@
 // React and React Native Imports
 import React, {
-  useState,
-  useEffect,
-  useRef,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
+  useState,
 } from "react";
 import { StyleSheet, View } from "react-native";
 
-// Third-Party Libraries
-import { useRouter } from "expo-router";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+// Navigation and Routing
+import { usePathname, useRouter, useSegments } from "expo-router";
 
-// Custom Components
-import Outlook from "@/components/Outlook/Outlook";
-import Text from "@/components/common/Text";
-import DailyTips from "@/components/DailyTip/DailyTips";
-import Divider from "@/components/common/Divider/Divider";
-import HomePredictionBottomSheet, {
-  HomePredictionBottomSheetRef,
-} from "@/components/Prediction/";
-import HomeGeneratePrediction from "@/components/Outlook/HomeGeneratePrediction";
-import HomeNoPredictionToday from "@/components/Outlook/HomeNoPredictionToday";
-// Constants and Utilities
-import { Colors, Sizes } from "@/constants";
-import { wp, hp } from "@/utils/ui/sizes";
-import { getFontSize } from "@/utils/text/fonts";
+// Third-Party Libraries
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
+// Context and Hooks
+import { useAuth } from "@/context/auth/AuthContext";
 import { useUser } from "@/hooks/firebase/useUser";
 import { usePredictions } from "@/hooks/firebase/usePredictions";
 import { useYesterdayEntry } from "@/hooks/firebase/useDailyEntry";
+
+// Custom Components
+import DailyTips from "@/components/DailyTip/DailyTips";
+import Divider from "@/components/common/Divider/Divider";
+import Text from "@/components/common/Text";
+import HomeGeneratePrediction from "@/components/Outlook/HomeGeneratePrediction";
+import HomeNoPredictionToday from "@/components/Outlook/HomeNoPredictionToday";
+import Outlook from "@/components/Outlook/Outlook";
+import HomePredictionBottomSheet, {
+  HomePredictionBottomSheetRef,
+} from "@/components/Prediction/";
+
+// Constants and Utilities
+import { Colors, Sizes } from "@/constants";
+import { getFontSize } from "@/utils/text/fonts";
+import { wp, hp } from "@/utils/ui/sizes";
 import { getPredictionByDate } from "@/utils/firebase/prediction";
-import { useAuth } from "@/context/auth/AuthContext";
 
 const today = new Date();
 const todayJustDate = new Date(
@@ -45,19 +50,25 @@ const Home = () => {
   const user = useUser();
   const { user: userAuth } = useAuth();
   const predictions = usePredictions().data;
+  const segments = useSegments();
   const {
     hasYesterdayEntry,
     yesterdayDate,
+    yesterdaysEntry,
     isLoading: isLoadingYesterday,
   } = useYesterdayEntry();
   const bottomSheetRef = useRef<HomePredictionBottomSheetRef>(null);
 
   const todaysPrediction = getPredictionByDate(predictions, todayJustDate);
   const hasTodaysPrediction = !!todaysPrediction;
-
   useEffect(() => {
     // Show bottom sheet if no today's prediction AND no yesterday's entry
-    if (!isLoadingYesterday && !hasTodaysPrediction && hasYesterdayEntry) {
+    if (
+      !isLoadingYesterday &&
+      !hasTodaysPrediction &&
+      hasYesterdayEntry &&
+      segments.includes("(home-stack)")
+    ) {
       console.log("open");
       // Add a small delay for better UX
       const timer = setTimeout(() => {
@@ -66,7 +77,7 @@ const Home = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [hasTodaysPrediction, hasYesterdayEntry, isLoadingYesterday]);
+  }, [hasTodaysPrediction, hasYesterdayEntry, isLoadingYesterday, segments]);
 
   // Memoize the child components
   const MemoizedOutlook = React.memo(Outlook);

@@ -36,11 +36,16 @@ const SettingsEmergency = () => {
   const userData = useUser();
   const { user } = useAuth();
   const emergency = userData?.data?.emergency ?? ({} as IUserEmergencySettings);
+
+  const initialBrightnessDisabled = emergency?.brightness === null;
   const initialBrightness =
     typeof emergency?.brightness === "number" ? emergency.brightness : 0.8;
   const initialNoAnimations = !!emergency?.noAnimations;
   const initialMutePhone = !!emergency?.mutePhone;
 
+  const [brightnessDisabled, setBrightnessDisabled] = useState<boolean>(
+    initialBrightnessDisabled
+  );
   const [brightness, setBrightness] = useState<number>(initialBrightness);
   const [noAnimations, setNoAnimations] =
     useState<boolean>(initialNoAnimations);
@@ -54,6 +59,7 @@ const SettingsEmergency = () => {
 
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
+  const lastBrightnessRef = useRef<number>(initialBrightness);
 
   useEffect(() => {
     return () => {
@@ -78,7 +84,9 @@ const SettingsEmergency = () => {
                 ...(userData?.data?.emergency ?? {}),
                 [key]:
                   key === "brightness"
-                    ? Math.min(Math.max(value, 0), 1)
+                    ? value === null
+                      ? null
+                      : Math.min(Math.max(value, 0), 1)
                     : value,
               },
             },
@@ -98,8 +106,8 @@ const SettingsEmergency = () => {
 
   const debouncedSaveBrightness = useCallback(
     (v: number) => {
+      if (brightnessDisabled) return;
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
-      // Mark as saving while we wait for the debounce window
       setSaving((s) => ({ ...s, brightness: true }));
       debounceTimer.current = setTimeout(async () => {
         await updateEmergencyValue("brightness", v);
@@ -108,16 +116,32 @@ const SettingsEmergency = () => {
         }
       }, 450);
     },
-    [updateEmergencyValue]
+    [updateEmergencyValue, brightnessDisabled]
   );
 
   const onSlide = useCallback(
     (v: number) => {
+      if (brightnessDisabled) return;
       setBrightness(v);
+      lastBrightnessRef.current = v;
       debouncedSaveBrightness(v);
     },
-    [debouncedSaveBrightness]
+    [debouncedSaveBrightness, brightnessDisabled]
   );
+
+  const toggleBrightnessDisabled = useCallback(async () => {
+    // If currently enabled, disable and store null
+    if (!brightnessDisabled) {
+      setBrightnessDisabled(true);
+      await updateEmergencyValue("brightness", null);
+      return;
+    }
+    // If currently disabled, re enable and restore last value
+    const restore = lastBrightnessRef.current ?? 0.8;
+    setBrightnessDisabled(false);
+    setBrightness(restore);
+    await updateEmergencyValue("brightness", restore);
+  }, [brightnessDisabled, updateEmergencyValue]);
 
   const toggleNoAnimations = useCallback(async () => {
     const next = !noAnimations;
@@ -136,15 +160,19 @@ const SettingsEmergency = () => {
       <Text style={styles.sectionTitle} fontWeight="bold">
         Emergency
       </Text>
+
       {/* Brightness */}
       <View style={styles.card}>
         <View style={styles.row}>
           <Text fontWeight="bold">Emergency brightness</Text>
           <View style={styles.rightRow}>
             {saving.brightness && <Text style={styles.savingText}>Saving</Text>}
-            <Text fontWeight="bold">{Math.round(brightness * 100)}%</Text>
+            <Text fontWeight="bold">
+              {brightnessDisabled ? "Off" : `${Math.round(brightness * 100)}%`}
+            </Text>
           </View>
         </View>
+
         <Slider
           style={styles.slider}
           minimumValue={0}
@@ -152,11 +180,32 @@ const SettingsEmergency = () => {
           step={0.01}
           value={brightness}
           onValueChange={onSlide}
-          minimumTrackTintColor={Colors.primary500}
+          minimumTrackTintColor={
+            brightnessDisabled ? Colors.secondary300 : Colors.primary500
+          }
           maximumTrackTintColor={Colors.secondary300}
-          thumbTintColor={Colors.primary700}
-          disabled={saving.brightness}
+          thumbTintColor={
+            brightnessDisabled ? Colors.secondary300 : Colors.primary700
+          }
+          disabled={saving.brightness || brightnessDisabled}
         />
+
+        <MyTouchableOpacity
+          style={[
+            styles.toggleBtn,
+            {
+              backgroundColor: brightnessDisabled
+                ? Colors.primary700
+                : Colors.secondary500,
+            },
+          ]}
+          onPress={toggleBrightnessDisabled}
+          disabled={saving.brightness}
+        >
+          <Text color="#fff" fontWeight="bold">
+            {brightnessDisabled ? "Enable brightness" : "Disable brightness"}
+          </Text>
+        </MyTouchableOpacity>
       </View>
 
       {/* Disable animations */}
@@ -255,5 +304,13 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(20),
     color: Colors.text,
     marginBottom: hp(2),
+  },
+  toggleBtn: {
+    marginTop: hp(1.5),
+
+    alignSelf: "center",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
 });

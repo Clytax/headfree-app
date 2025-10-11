@@ -46,10 +46,14 @@ import { getFontSize } from "@/utils/text/fonts";
 // Models
 import { createEmptyUser } from "@/utils/firebase/user";
 
+// Context
+import { useBiometricAuth } from "@/context/auth/BiometricAuthContext";
+
 // Types
 type SignUpFormType = z.infer<typeof SignUpSchema>;
 
 const SignUp = () => {
+  const { disableBiometrics } = useBiometricAuth();
   const router = useRouter();
 
   const headerHeight = useHeaderHeight();
@@ -102,6 +106,9 @@ const SignUp = () => {
         },
         { merge: true }
       );
+
+      // Remove current biometric credentials if any (we want to set them up fresh after sign up)
+      await disableBiometrics();
 
       // router.replace("/onboarding"); // optional route
     } catch (error: any) {

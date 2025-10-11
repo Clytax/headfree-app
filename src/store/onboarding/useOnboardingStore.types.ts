@@ -13,7 +13,7 @@ export type OnboardingPrivacyPolicy = {
 };
 
 export type OnboardingEmergencySetup = {
-  brightness: number;
+  brightness: number | null; // 0 - 1, null = use system default
   music: boolean;
   musicType: "calm" | "upbeat" | "science" | null;
   mutePhone: boolean;

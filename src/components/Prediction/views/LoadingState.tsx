@@ -58,5 +58,6 @@ const styles = StyleSheet.create({
   },
   loadingSubtext: {
     marginTop: hp(0.5),
+    marginBottom: hp(4),
   },
 });

@@ -21,6 +21,9 @@ import ResultsState from "./views/ResultState";
 import { IUserPrediction } from "@/types/user";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+// HOokd
+import { getAuth, getIdToken } from "@react-native-firebase/auth";
+
 export interface HomePredictionBottomSheetProps {
   yesterdayDate: string;
   onClose?: () => void;
@@ -39,6 +42,8 @@ const HomePredictionBottomSheet = forwardRef<
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ["65%"], []);
   const insets = useSafeAreaInsets();
+  const auth = getAuth();
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [predictionResult, setPredictionResult] =
@@ -71,27 +76,42 @@ const HomePredictionBottomSheet = forwardRef<
     startCycling();
 
     try {
+      const auth = getAuth();
+      const userToken = await getIdToken(auth.currentUser!, true);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+
+      const fullUrl = `${process.env.EXPO_PUBLIC_HEADFREE_API}/predict`;
+      console.log(fullUrl);
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_HEADFREE_API}/predict`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${userToken}`,
           },
           body: JSON.stringify({
-            user_id: userId,
             prediction_date: new Date().toISOString().slice(0, 10),
           }),
+          signal: controller.signal, // attach the abort signal
         }
       );
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error("Failed to generate prediction");
 
       const data = (await response.json()) as IUserPrediction;
       setPredictionResult(data);
-    } catch (err) {
-      console.error("Error generating prediction:", err);
-      setError("Failed to generate prediction. Please try again.");
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        setError("Request timed out. Please try again.");
+      } else {
+        console.error("Error generating prediction:", err);
+        setError("Failed to generate prediction. Please try again.");
+      }
     } finally {
       setIsLoading(false);
       stopCycling();
