@@ -21,8 +21,11 @@ import ResultsState from "./views/ResultState";
 import { IUserPrediction } from "@/types/user";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-// HOokd
+// Hooks
 import { getAuth, getIdToken } from "@react-native-firebase/auth";
+
+//  Utils
+import { callPredict } from "@/utils/prediction/predict";
 
 export interface HomePredictionBottomSheetProps {
   yesterdayDate: string;
@@ -42,8 +45,10 @@ const HomePredictionBottomSheet = forwardRef<
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ["65%"], []);
   const insets = useSafeAreaInsets();
+
   const auth = getAuth();
 
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [predictionResult, setPredictionResult] =
@@ -57,13 +62,13 @@ const HomePredictionBottomSheet = forwardRef<
   const present = useCallback(() => {
     bottomSheetRef.current?.present();
   }, []);
-
   const dismiss = useCallback(() => {
     bottomSheetRef.current?.dismiss();
     setTimeout(() => {
       setIsLoading(false);
       setError(null);
       setPredictionResult(null);
+      setLatencyMs(null);
       stopCycling();
     }, 300);
   }, [stopCycling]);
@@ -74,49 +79,32 @@ const HomePredictionBottomSheet = forwardRef<
     setIsLoading(true);
     setError(null);
     startCycling();
-
     try {
       const auth = getAuth();
       const userToken = await getIdToken(auth.currentUser!, true);
+      const { data, outcome } = await callPredict(userToken, 20000);
+      setLatencyMs(outcome.ms);
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+      if (__DEV__)
+        console.log(
+          `[PERF] predict outcome=${outcome.ok ? "ok" : outcome.kind} ms=${
+            outcome.ms
+          } status=${(outcome as any).status ?? ""}`
+        );
 
-      const fullUrl = `${process.env.EXPO_PUBLIC_HEADFREE_API}/predict`;
-      console.log(fullUrl);
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_HEADFREE_API}/predict`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${userToken}`,
-          },
-          body: JSON.stringify({
-            prediction_date: new Date().toISOString().slice(0, 10),
-          }),
-          signal: controller.signal, // attach the abort signal
-        }
-      );
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) throw new Error("Failed to generate prediction");
-
-      const data = (await response.json()) as IUserPrediction;
-      setPredictionResult(data);
+      if (!outcome.ok) throw new Error(outcome.kind);
+      setPredictionResult(data as IUserPrediction);
     } catch (err: any) {
-      if (err.name === "AbortError") {
-        setError("Request timed out. Please try again.");
-      } else {
-        console.error("Error generating prediction:", err);
-        setError("Failed to generate prediction. Please try again.");
-      }
+      setError(
+        err.message === "timeout"
+          ? "Request timed out. Please try again."
+          : "Failed to generate prediction. Please try again."
+      );
     } finally {
       setIsLoading(false);
       stopCycling();
     }
-  }, [startCycling, stopCycling, userId]);
+  }, [startCycling, stopCycling]);
 
   const backdropComponent = useCallback(
     (props: any) => (
@@ -173,6 +161,7 @@ const HomePredictionBottomSheet = forwardRef<
       {!isLoading && predictionResult && (
         <ResultsState
           result={predictionResult}
+          latencyMs={latencyMs}
           riskColor={getRiskColor(predictionResult.risk_level)}
           onClose={dismiss}
         />

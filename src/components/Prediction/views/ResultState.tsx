@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 interface ResultsStateProps {
   result: IUserPrediction;
   riskColor: string;
+  latencyMs: number | null;
   onClose: () => void;
 }
 
@@ -22,6 +23,7 @@ const ResultsState: React.FC<ResultsStateProps> = ({
   result,
   riskColor,
   onClose,
+  latencyMs,
 }) => {
   const insets = useSafeAreaInsets();
   return (
@@ -33,6 +35,19 @@ const ResultsState: React.FC<ResultsStateProps> = ({
     >
       <View style={styles.successIconContainer}>
         <CheckCircle size={48} color={Colors.success500} />
+        {latencyMs !== null && (
+          <Text
+            fontSize={getFontSize(12)}
+            color={Colors.neutral400}
+            textCenter
+            style={{}}
+          >
+            Generated in{" "}
+            {latencyMs < 1000
+              ? `${latencyMs} ms`
+              : `${(latencyMs / 1000).toFixed(1)} s`}
+          </Text>
+        )}
       </View>
 
       <Text
@@ -139,6 +154,9 @@ const styles = StyleSheet.create({
   },
   successIconContainer: {
     alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: hp(1),
     marginBottom: hp(2),
   },
   title: {
