@@ -4,6 +4,7 @@ import { DailyEntryStore } from "@/store/global/daily/useDailyEntryStore.types";
 const initialState: DailyEntryStore = {
   stress: null,
   water: null,
+  migraineToday: null,
   caffeine: null,
   neckPain: null,
   meals: null,

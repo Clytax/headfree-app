@@ -15,9 +15,7 @@ import {
   setDoc,
   serverTimestamp,
 } from "@react-native-firebase/firestore";
-import DateTimePicker, {
-  DateTimePickerAndroid,
-} from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useFocusEffect } from "@react-navigation/native";
 import Text from "@/components/common/Text";
 import SafeAreaContainer from "@/components/common/Container/SafeAreaContainer";
@@ -59,19 +57,15 @@ const DateHeader = ({
   date: Date;
   onChange: (d: Date) => void;
 }) => {
-  const [iosOpen, setIosOpen] = useState(false);
+  const [isPickerVisible, setPickerVisible] = useState(false);
   const today = new Date();
 
-  const openPicker = () => {
-    if (Platform.OS === "android") {
-      DateTimePickerAndroid.open({
-        mode: "date",
-        value: date,
-        onChange: (_, selected) => selected && onChange(selected),
-      });
-    } else {
-      setIosOpen(true);
-    }
+  const openPicker = () => setPickerVisible(true);
+  const closePicker = () => setPickerVisible(false);
+
+  const handleConfirm = (selected: Date) => {
+    closePicker();
+    if (selected) onChange(selected);
   };
 
   return (
@@ -100,16 +94,15 @@ const DateHeader = ({
         <ChevronRight size={24} color={Colors.textDark} />
       </TouchableOpacity>
 
-      {Platform.OS === "ios" && iosOpen && (
-        <DateTimePicker
-          mode="date"
-          value={date}
-          onChange={(_, selected) => {
-            setIosOpen(false);
-            if (selected) onChange(selected);
-          }}
-        />
-      )}
+      <DateTimePickerModal
+        isVisible={isPickerVisible}
+        mode="date"
+        date={date}
+        // optional limits:
+        maximumDate={today}
+        onConfirm={handleConfirm}
+        onCancel={closePicker}
+      />
     </View>
   );
 };
@@ -128,12 +121,20 @@ const DailyEntry: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const SELECTED_ISO = useMemo(() => toISODate(selectedDate), [selectedDate]);
 
+  // Track which item is expanded
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const scrollViewRef = React.useRef<ScrollView>(null);
+  const itemRefs = React.useRef<{ [key: string]: View | null }>({});
+  const [showTopIndicator, setShowTopIndicator] = useState(false);
+  const [showBottomIndicator, setShowBottomIndicator] = useState(false);
+
   // always reset to today when this tab/screen gains focus
   useFocusEffect(
     useCallback(() => {
       setSelectedDate(new Date());
       // optional: also clear local form store immediately so UI shows blank state until hydration
       resetStore();
+      setExpandedKey(null);
     }, [resetStore])
   );
 
@@ -144,7 +145,65 @@ const DailyEntry: React.FC = () => {
     isLoading: isLoadingEntry,
   } = useTodayEntry(SELECTED_ISO);
 
+  // Auto-expand first empty item when data loads
+  React.useEffect(() => {
+    if (!isLoadingEntry && expandedKey === null) {
+      const firstEmptyFactor = FACTORS.filter(
+        (f) => f.kind === "choice" && f.choices
+      ).find((f) => (fullStore as any)[f.key] == null);
+      if (firstEmptyFactor) {
+        setExpandedKey(firstEmptyFactor.key);
+        // Scroll to it after a brief delay to ensure layout is complete
+        setTimeout(() => {
+          scrollToItem(firstEmptyFactor.key);
+        }, 100);
+      }
+    }
+  }, [isLoadingEntry, fullStore, expandedKey]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Handle scroll to update indicators
+  const handleScroll = (event: any) => {
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    const scrollY = contentOffset.y;
+    const scrollHeight = contentSize.height;
+    const viewHeight = layoutMeasurement.height;
+
+    // Show top indicator if scrolled down more than 20px
+    setShowTopIndicator(scrollY > 20);
+
+    // Show bottom indicator if not at the bottom (with 20px threshold)
+    setShowBottomIndicator(scrollY + viewHeight < scrollHeight - 20);
+  };
+
+  // Helper to scroll to an item
+  const scrollToItem = (key: string) => {
+    const ref = itemRefs.current[key];
+    if (ref && scrollViewRef.current) {
+      ref.measureLayout(
+        // @ts-ignore - findNodeHandle is available but types may be incomplete
+        scrollViewRef.current.getNativeScrollRef?.() || scrollViewRef.current,
+        (x, y) => {
+          scrollViewRef.current?.scrollTo({
+            y: Math.max(0, y - hp(10)),
+            animated: true,
+          });
+        },
+        () => {} // error callback
+      );
+    }
+  };
+
+  // Handle item expansion and auto-advance
+  const handleItemExpand = (key: string, shouldExpand: boolean) => {
+    if (shouldExpand) {
+      setExpandedKey(key);
+      setTimeout(() => scrollToItem(key), 100);
+    } else {
+      setExpandedKey(null);
+    }
+  };
 
   // make the form hook date aware via overrideTodayISO
   const { TODAY_ISO, handleEntryChange, formValid, percent, pickValues } =
@@ -184,7 +243,7 @@ const DailyEntry: React.FC = () => {
       const values = pickValues();
       const now = serverTimestamp();
 
-      if (existing.exists) {
+      if (existing.exists()) {
         const createdAt = existing.data()?.createdAt ?? now;
         await setDoc(
           entryRef,
@@ -239,22 +298,54 @@ const DailyEntry: React.FC = () => {
       )}
 
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {FACTORS.filter((f) => f.kind === "choice" && f.choices).map((f) => (
-          <DailyEntryChoice
+          <View
             key={f.key}
-            title={f.title || String(f.key)}
-            description={f.description || ""}
-            choices={f.choices!}
-            onChange={(value) =>
-              handleEntryChange(f.key as any, value, isSubmitting)
-            }
-            value={(fullStore as any)[f.key]}
-            isLoading={isSubmitting || isLoadingEntry}
-          />
+            ref={(ref) => {
+              itemRefs.current[f.key] = ref;
+            }}
+            collapsable={false}
+          >
+            <DailyEntryChoice
+              title={f.title || String(f.key)}
+              description={f.description || ""}
+              choices={f.choices!}
+              onChange={(value) => {
+                handleEntryChange(f.key as any, value, isSubmitting);
+                // Auto-advance to next empty item after selection
+                setTimeout(() => {
+                  const currentIndex = FACTORS.filter(
+                    (f) => f.kind === "choice" && f.choices
+                  ).findIndex((factor) => factor.key === f.key);
+                  const remainingFactors = FACTORS.filter(
+                    (f) => f.kind === "choice" && f.choices
+                  ).slice(currentIndex + 1);
+                  const nextEmptyFactor = remainingFactors.find(
+                    (factor) => (fullStore as any)[factor.key] == null
+                  );
+                  if (nextEmptyFactor) {
+                    setExpandedKey(nextEmptyFactor.key);
+                    setTimeout(() => scrollToItem(nextEmptyFactor.key), 100);
+                  } else {
+                    setExpandedKey(null);
+                  }
+                }, 300);
+              }}
+              value={(fullStore as any)[f.key]}
+              isLoading={isSubmitting || isLoadingEntry}
+              expanded={expandedKey === f.key}
+              onToggleExpand={(shouldExpand) =>
+                handleItemExpand(f.key, shouldExpand)
+              }
+            />
+          </View>
         ))}
 
         <DailyEntrySleep />
@@ -271,6 +362,25 @@ const DailyEntry: React.FC = () => {
           <DailyEntryMenstruationCycle />
         )}
       </ScrollView>
+
+      {/* Scroll Indicators */}
+      {showTopIndicator && (
+        <View style={styles.topIndicator}>
+          <View style={styles.indicatorLine} />
+          <Text fontSize={getFontSize(12)} color={Colors.neutral400}>
+            More above ↑
+          </Text>
+        </View>
+      )}
+
+      {showBottomIndicator && (
+        <View style={styles.bottomIndicator}>
+          <Text fontSize={getFontSize(12)} color={Colors.neutral400}>
+            More below ↓
+          </Text>
+          <View style={styles.indicatorLine} />
+        </View>
+      )}
 
       <View style={styles.fabContainer}>
         <TouchableOpacity
@@ -319,6 +429,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: hp(1),
+    paddingHorizontal: Sizes.containerPaddingHorizontal,
   },
   dateCenter: {
     alignItems: "center",
@@ -374,5 +485,32 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(10),
     fontWeight: "bold",
     textAlign: "center",
+  },
+  topIndicator: {
+    position: "absolute",
+    top: hp(18),
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    paddingVertical: hp(1),
+    backgroundColor: `${Colors.background}dd`,
+    backdropFilter: "blur(10px)",
+  },
+  bottomIndicator: {
+    position: "absolute",
+    bottom: hp(12),
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    paddingVertical: hp(1),
+    backgroundColor: `${Colors.background}dd`,
+    backdropFilter: "blur(10px)",
+  },
+  indicatorLine: {
+    width: wp(20),
+    height: 2,
+    backgroundColor: Colors.neutral600,
+    borderRadius: 1,
+    marginVertical: hp(0.5),
   },
 });

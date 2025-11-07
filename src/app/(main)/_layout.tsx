@@ -34,7 +34,6 @@ const MainLayout = () => {
   const onboardingCompleted = useOnboardingStatus(user?.uid).data;
   const signedPolicy = !!userData?.data?.privacy?.hasConsented;
   const db = getFirestore();
-  console.log(signedPolicy);
   return (
     <Stack
       screenOptions={{

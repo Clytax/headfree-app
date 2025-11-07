@@ -292,6 +292,13 @@ const OnboardingProfileCard = () => {
     // @ts-expect-error index access with typed key
     patch[id] = v;
     updateMigraineProfile(patch);
+
+    // Auto-advance to next question after a short delay
+    setTimeout(() => {
+      if (currentIndex < ALL_OPTIONS.length - 1) {
+        setCurrentIndex((i) => i + 1);
+      }
+    }, 300);
   };
 
   const readChoiceValue = (id: OptionId): number | null => {

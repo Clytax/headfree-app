@@ -27,6 +27,7 @@ type Props = {
   value: number | null;
   onChange: (v: number | null) => void;
   allowNull?: boolean;
+  disabled?: boolean;
 };
 
 export const OptionChoice: React.FC<Props> = ({
@@ -34,6 +35,7 @@ export const OptionChoice: React.FC<Props> = ({
   value,
   onChange,
   allowNull,
+  disabled,
 }) => {
   const scrollRef = useRef<ScrollView>(null);
   const [containerW, setContainerW] = useState(0);

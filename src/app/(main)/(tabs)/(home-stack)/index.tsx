@@ -69,7 +69,6 @@ const Home = () => {
       hasYesterdayEntry &&
       segments.includes("(home-stack)")
     ) {
-      console.log("open");
       // Add a small delay for better UX
       const timer = setTimeout(() => {
         bottomSheetRef.current?.present(); // Changed from open() to present()

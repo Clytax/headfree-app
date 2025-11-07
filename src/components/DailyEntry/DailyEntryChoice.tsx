@@ -23,6 +23,7 @@ import MyTouchableOpacity from "@/components/common/Buttons/MyTouchableOpacity";
 import { OptionChoice } from "@/components/Onboarding/OnboardingProfile/Fields/OptionChoice";
 
 const ANIM_MS = 220;
+
 interface DailyEntryChoiceProps {
   title: string;
   description?: string;
@@ -30,7 +31,9 @@ interface DailyEntryChoiceProps {
   choices: { value: any; label: string }[];
   value: any;
   allowNull?: boolean;
-  isLoading?: boolean; // New prop
+  isLoading?: boolean;
+  expanded?: boolean;
+  onToggleExpand?: (shouldExpand: boolean) => void;
 }
 
 const DailyEntryChoice = ({
@@ -40,12 +43,17 @@ const DailyEntryChoice = ({
   choices,
   value,
   allowNull,
-  isLoading = false, // Default to false
+  isLoading = false,
+  expanded: controlledExpanded,
+  onToggleExpand,
 }: DailyEntryChoiceProps) => {
   const router = useRouter();
-  const [expanded, setExpanded] = useState(false);
+  const [internalExpanded, setInternalExpanded] = useState(false);
   const [collapsedHeight, setCollapsedHeight] = useState<number | null>(null);
   const [expandedHeight, setExpandedHeight] = useState<number | null>(null);
+
+  const expanded =
+    controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
 
   const progress = useSharedValue(0);
   const animatedHeight = useSharedValue<number | undefined>(undefined);
@@ -53,7 +61,6 @@ const DailyEntryChoice = ({
   useEffect(() => {
     progress.value = withTiming(expanded ? 1 : 0, { duration: ANIM_MS });
 
-    // Animate height when we have both measurements
     if (collapsedHeight !== null && expandedHeight !== null) {
       animatedHeight.value = withTiming(
         expanded ? expandedHeight : collapsedHeight,
@@ -98,8 +105,14 @@ const DailyEntryChoice = ({
   };
 
   const toggleExpand = () => {
-    if (isLoading) return; // Prevent toggling when loading
-    setExpanded((prev) => !prev);
+    if (isLoading) return;
+    const newExpanded = !expanded;
+
+    if (onToggleExpand) {
+      onToggleExpand(newExpanded);
+    } else {
+      setInternalExpanded(newExpanded);
+    }
   };
 
   return (
@@ -107,18 +120,17 @@ const DailyEntryChoice = ({
       onPress={toggleExpand}
       activeOpacity={0.9}
       accessibilityState={{ expanded }}
-      disabled={isLoading} // Disable touchable when loading
+      disabled={isLoading}
     >
       <Animated.View
         style={[
           styles.container,
           animatedBorder,
           animatedContainerStyle,
-          isLoading && styles.disabled, // Add visual feedback for disabled state
+          isLoading && styles.disabled,
         ]}
       >
         <View style={styles.absoluteContainer}>
-          {/* Collapsed content for measurement */}
           <View
             style={[styles.contentContainer, { opacity: expanded ? 0 : 1 }]}
             onLayout={onCollapsedLayout}
@@ -143,7 +155,6 @@ const DailyEntryChoice = ({
             </View>
           </View>
 
-          {/* Expanded content for measurement */}
           <View
             style={[styles.contentContainer, { opacity: expanded ? 1 : 0 }]}
             onLayout={onExpandedLayout}
@@ -168,7 +179,7 @@ const DailyEntryChoice = ({
               option={{ choices }}
               value={value}
               allowNull={allowNull}
-              disabled={isLoading} // Pass disabled prop to OptionChoice
+              disabled={isLoading}
             />
           </View>
         </View>
@@ -210,7 +221,7 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   disabled: {
-    opacity: 0.6, // Visual feedback for disabled state
+    opacity: 0.6,
   },
 });
 

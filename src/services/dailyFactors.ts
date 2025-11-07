@@ -1,4 +1,5 @@
 export type FactorKey =
+  | "migraineToday"
   | "stress"
   | "emotion"
   | "caffeine"
@@ -29,6 +30,18 @@ export interface FactorMeta<T = any> {
   choices?: Choice[];
 }
 export const FACTORS: readonly FactorMeta[] = [
+  {
+    key: "migraineToday",
+    kind: "choice",
+    required: true,
+    initial: null,
+    title: "Migraine Today",
+    description: "Did you have a migraine today",
+    choices: [
+      { value: 0, label: "🙂 No" },
+      { value: 1, label: "🤕 Yes" },
+    ],
+  },
   {
     key: "stress",
     kind: "choice",

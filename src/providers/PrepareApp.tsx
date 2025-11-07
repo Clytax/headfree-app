@@ -43,7 +43,6 @@ LogBox.ignoreLogs([""]);
 const AppContent = ({ children }: { children: React.ReactNode }) => {
   const [isBlurred, setIsBlurred] = useState(false);
   const { isBiometricAuthActive } = useBiometricAuth();
-  console.log(isBiometricAuthActive);
   // Handle app state changes for privacy screen
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {

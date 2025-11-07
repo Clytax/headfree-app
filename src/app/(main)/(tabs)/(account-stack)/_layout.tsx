@@ -49,8 +49,20 @@ const AccountStack = () => {
           headerStyle: {
             backgroundColor: Colors.neutral800,
           },
+          headerTitleStyle: {
+            color: Colors.text,
+            fontSize: getFontSize(18),
+          },
+
+          headerTintColor: Colors.text,
           headerRight: () => (
-            <MyTouchableOpacity onPress={onSettings}>
+            <MyTouchableOpacity
+              onPress={onSettings}
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <Settings color={Colors.neutral200} size={hp(2.5)} />
             </MyTouchableOpacity>
           ),
