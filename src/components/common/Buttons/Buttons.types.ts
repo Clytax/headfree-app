@@ -11,12 +11,20 @@ export interface MyTouchableOpacityProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   activeOpacity?: number;
+  testID?: string;
   disabled?: boolean;
   onPress?: any;
   onLayout?: any;
+  accessible?: boolean;
   accessibilityRole?: AccessibilityRole;
   accessibilityLabel?: string;
   accessibilityState?: AccessibilityState;
+  accessibilityIdentifier?: string;
+  accessibilityHint?: string;
+
+  hitSlop?:
+    | number
+    | { top: number; bottom: number; left: number; right: number };
 }
 export type SimpleButtonVariant = "primary" | "secondary";
 export type SimpleButtonSize = "sm" | "md" | "lg";
@@ -24,6 +32,7 @@ export type SimpleButtonSize = "sm" | "md" | "lg";
 export interface SimpleButtonProps {
   title: string;
   onPress?: () => void;
+  testID?: string;
 
   /** Visuals */
   variant?: SimpleButtonVariant;

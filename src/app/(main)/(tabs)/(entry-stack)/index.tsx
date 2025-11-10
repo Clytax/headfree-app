@@ -16,7 +16,7 @@ import {
   serverTimestamp,
 } from "@react-native-firebase/firestore";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useRoute } from "@react-navigation/native"; // <-- added useRoute
 import Text from "@/components/common/Text";
 import SafeAreaContainer from "@/components/common/Container/SafeAreaContainer";
 import DailyEntryChoice from "@/components/DailyEntry/DailyEntryChoice";
@@ -41,13 +41,45 @@ import { useDailyEntryForm } from "@/hooks/useDailyEntryForm";
 import { useTodayEntry } from "@/hooks/firebase/useDailyEntry";
 
 // helpers
-const toISODate = (d: Date) => d.toISOString().slice(0, 10);
+const toISODate = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0"); // month is 0-indexed
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
 const addDays = (d: Date, days: number) => {
   const x = new Date(d);
+  // preserve local time and just change the day
   x.setDate(x.getDate() + days);
   return x;
 };
-const isSameDay = (a: Date, b: Date) => toISODate(a) === toISODate(b);
+
+const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
+
+// Parse a variety of date string formats, prefer YYYY-MM-DD local date
+const parseSelectedDateParam = (val: unknown): Date | null => {
+  if (!val) return null;
+  if (val instanceof Date && !isNaN(val.getTime())) return val;
+  if (typeof val === "string") {
+    // prefer plain YYYY-MM-DD to avoid timezone surprises
+    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      const [y, m, d] = val.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+    const parsed = new Date(val);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+  // numbers (timestamp)
+  if (typeof val === "number" && !isNaN(val)) {
+    const parsed = new Date(val);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+  return null;
+};
 
 // inline date header component
 const DateHeader = ({
@@ -121,6 +153,10 @@ const DailyEntry: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const SELECTED_ISO = useMemo(() => toISODate(selectedDate), [selectedDate]);
 
+  // read route params
+  const route = useRoute();
+  const routeParams = (route as any)?.params;
+
   // Track which item is expanded
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const scrollViewRef = React.useRef<ScrollView>(null);
@@ -131,11 +167,20 @@ const DailyEntry: React.FC = () => {
   // always reset to today when this tab/screen gains focus
   useFocusEffect(
     useCallback(() => {
-      setSelectedDate(new Date());
-      // optional: also clear local form store immediately so UI shows blank state until hydration
+      // reset UI store and expansion state always
       resetStore();
       setExpandedKey(null);
-    }, [resetStore])
+
+      // if a selectedDate param exists, try to parse and use it
+      const param = routeParams?.selectedDate;
+      const parsed = parseSelectedDateParam(param);
+      if (parsed) {
+        setSelectedDate(parsed);
+      } else {
+        // default behavior: show today
+        setSelectedDate(new Date());
+      }
+    }, [resetStore, routeParams?.selectedDate])
   );
 
   // use your existing hook for the selected date
@@ -370,15 +415,6 @@ const DailyEntry: React.FC = () => {
           <Text fontSize={getFontSize(12)} color={Colors.neutral400}>
             More above ↑
           </Text>
-        </View>
-      )}
-
-      {showBottomIndicator && (
-        <View style={styles.bottomIndicator}>
-          <Text fontSize={getFontSize(12)} color={Colors.neutral400}>
-            More below ↓
-          </Text>
-          <View style={styles.indicatorLine} />
         </View>
       )}
 

@@ -416,6 +416,11 @@ const BreathingExerciseWithAnimation: React.FC<
           <MyTouchableOpacity
             style={styles.startButton}
             onPress={startExercise}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel="Start breathing exercise"
+            accessibilityHint="Begins a guided breathing exercise"
+            hitSlop={8}
           >
             <Text
               fontSize={getFontSize(16)}
@@ -428,7 +433,15 @@ const BreathingExerciseWithAnimation: React.FC<
         )}
 
         {isActive && (
-          <MyTouchableOpacity style={styles.stopButton} onPress={stopExercise}>
+          <MyTouchableOpacity
+            style={styles.stopButton}
+            onPress={stopExercise}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel="Stop exercise"
+            accessibilityHint="Stops the current guided exercise"
+            hitSlop={8}
+          >
             <Text
               fontSize={getFontSize(16)}
               fontWeight="medium"
@@ -460,6 +473,11 @@ const BreathingExerciseWithAnimation: React.FC<
             <MyTouchableOpacity
               style={styles.restartButton}
               onPress={startExercise}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Do another round"
+              accessibilityHint="Starts one more round of the exercise"
+              hitSlop={8}
             >
               <Text
                 fontSize={getFontSize(14)}

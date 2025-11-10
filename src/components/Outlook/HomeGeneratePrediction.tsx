@@ -62,6 +62,7 @@ const HomeGeneratePrediction = ({
           size="lg"
           fullWidth
           contentStyle={styles.buttonContent}
+          testID="generate-forecast-button"
         />
 
         {/* Small helper text */}

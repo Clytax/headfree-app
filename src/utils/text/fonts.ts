@@ -74,10 +74,7 @@ export const getFontSize = (
     newSize *= 1.1;
   }
 
-  return (
-    Math.round(PixelRatio.roundToNearestPixel(newSize)) /
-    PixelRatio.getFontScale()
-  );
+  return Math.round(PixelRatio.roundToNearestPixel(newSize));
 };
 
 export const adjustFontConfig = (

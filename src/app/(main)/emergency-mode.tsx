@@ -123,8 +123,11 @@ const EmergencyModePage: React.FC = () => {
         <MyTouchableOpacity
           style={styles.closeButton}
           onPress={() => router.back()}
+          accessible
           accessibilityRole={"button" as AccessibilityRole}
           accessibilityLabel="Close emergency mode"
+          accessibilityHint="Return to the previous screen and exit emergency mode"
+          hitSlop={8}
         >
           <Text fontSize={getFontSize(18)} color={Colors.gray}>
             ✕

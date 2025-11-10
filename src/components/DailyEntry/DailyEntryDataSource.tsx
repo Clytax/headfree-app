@@ -120,9 +120,17 @@ const DailyEntryDataSource = ({
     <MyTouchableOpacity
       onPress={toggleExpand}
       activeOpacity={0.9}
+      accessible
       accessibilityRole="button"
-      accessibilityState={{ expanded }}
+      accessibilityLabel="Toggle details"
+      accessibilityHint="Expands or collapses the details section"
+      accessibilityState={{
+        expanded: !!expanded,
+        disabled: !!isLoading,
+        busy: !!isLoading,
+      }}
       disabled={isLoading} // Disable touchable when loading
+      hitSlop={8}
     >
       <Animated.View
         style={[

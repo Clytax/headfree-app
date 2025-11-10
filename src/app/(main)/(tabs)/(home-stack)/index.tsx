@@ -96,7 +96,14 @@ const Home = () => {
     } else {
       return <MemoizedNoPrediction />;
     }
-  }, [hasTodaysPrediction, hasYesterdayEntry, todaysPrediction]);
+  }, [
+    hasTodaysPrediction,
+    hasYesterdayEntry,
+    todaysPrediction,
+    MemoizedGeneratePrediction,
+    MemoizedOutlook,
+    MemoizedNoPrediction,
+  ]);
   return (
     <View style={styles.container}>
       <Divider title="Daily Tip" />

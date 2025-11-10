@@ -74,7 +74,16 @@ const InitialState: React.FC<InitialStateProps> = ({
       )}
 
       <View style={styles.buttonContainer}>
-        <MyTouchableOpacity onPress={onGenerate} style={styles.primaryButton}>
+        <MyTouchableOpacity
+          onPress={onGenerate}
+          style={styles.primaryButton}
+          accessible
+          testID="generate-forecast-button-final"
+          accessibilityRole="button"
+          accessibilityLabel="Generate forecast"
+          accessibilityHint="Calculate your migraine risk for the next day"
+          hitSlop={8}
+        >
           <Text
             fontWeight="bold"
             fontSize={getFontSize(16)}
@@ -83,7 +92,15 @@ const InitialState: React.FC<InitialStateProps> = ({
             Generate Forecast
           </Text>
         </MyTouchableOpacity>
-        <MyTouchableOpacity onPress={onLater} style={styles.secondaryButton}>
+        <MyTouchableOpacity
+          onPress={onLater}
+          style={styles.secondaryButton}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Maybe later"
+          accessibilityHint="Dismiss for now and remind me later"
+          hitSlop={8}
+        >
           <Text
             fontWeight="medium"
             fontSize={getFontSize(15)}

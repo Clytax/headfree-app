@@ -14,13 +14,18 @@ import Text from "@/components/common/Text";
 import MyTouchableOpacity from "@/components/common/Buttons/MyTouchableOpacity";
 import SimpleButton from "@/components/common/Buttons/SimpleButton";
 
-interface HomeNoPredictionTodayProps {}
-
-const HomeNoPredictionToday = ({}: HomeNoPredictionTodayProps) => {
+const HomeNoPredictionToday = () => {
   const router = useRouter();
 
   const handleAddEntry = () => {
-    router.push("/(main)/(tabs)/(entry-stack)");
+    router.push({
+      pathname: "/(main)/(tabs)/(entry-stack)",
+      params: {
+        selectedDate: new Date(
+          new Date().setDate(new Date().getDate() - 1)
+        ).toISOString(),
+      },
+    });
   };
 
   return (
@@ -58,7 +63,7 @@ const HomeNoPredictionToday = ({}: HomeNoPredictionTodayProps) => {
 
         {/* CTA Button */}
         <SimpleButton
-          title="Add Today's Entry"
+          title="Add Yesterday's Entry"
           onPress={handleAddEntry}
           variant="primary"
           size="lg"

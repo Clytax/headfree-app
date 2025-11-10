@@ -135,7 +135,15 @@ const ResultsState: React.FC<ResultsStateProps> = ({
           Consult healthcare professionals for medical decisions.
         </Text>
       </View>
-      <MyTouchableOpacity onPress={onClose} style={styles.closeButton}>
+      <MyTouchableOpacity
+        onPress={onClose}
+        style={styles.closeButton}
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel="Close"
+        accessibilityHint="Close this screen"
+        hitSlop={8}
+      >
         <Text fontWeight="bold" fontSize={getFontSize(16)} color={Colors.white}>
           Close
         </Text>

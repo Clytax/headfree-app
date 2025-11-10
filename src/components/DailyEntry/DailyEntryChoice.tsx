@@ -119,8 +119,17 @@ const DailyEntryChoice = ({
     <MyTouchableOpacity
       onPress={toggleExpand}
       activeOpacity={0.9}
-      accessibilityState={{ expanded }}
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel="Toggle details"
+      accessibilityHint="Expands or collapses the details section"
+      accessibilityState={{
+        expanded: !!expanded,
+        disabled: !!isLoading,
+        busy: !!isLoading,
+      }}
       disabled={isLoading}
+      hitSlop={8}
     >
       <Animated.View
         style={[

@@ -62,6 +62,11 @@ const AccountStack = () => {
                 alignItems: "center",
                 justifyContent: "center",
               }}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Open settings"
+              accessibilityHint="Open app settings"
+              hitSlop={8}
             >
               <Settings color={Colors.neutral200} size={hp(2.5)} />
             </MyTouchableOpacity>

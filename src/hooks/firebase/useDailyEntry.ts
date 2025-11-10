@@ -103,7 +103,6 @@ export function useTodayEntry(dateISO?: string) {
 
     // Initial fetch
     getDoc(entryRef).then((snap) => {
-      console.log(snap);
       setHasSubmittedToday(snap.exists());
       setTodaysEntry(
         snap.exists() ? ({ ...snap.data(), id: snap.id } as DailyEntry) : null

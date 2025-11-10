@@ -1,14 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { AppState, InteractionManager } from "react-native";
+import { AppState, InteractionManager, Platform } from "react-native";
 import { Stack } from "expo-router";
-import {
-  FirebaseAuthTypes,
-  getAuth,
-  onAuthStateChanged,
-  onIdTokenChanged,
-  reload,
-  signOut,
-} from "@react-native-firebase/auth";
+import { getAuth } from "@react-native-firebase/auth";
 import PrepareApp from "@/providers/PrepareApp";
 
 // Packages
@@ -16,40 +9,99 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Context
 import { AuthProvider, useAuth } from "@/context/auth/AuthContext";
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { EmergencyProvider } from "@/context/emergency/EmergencyContext";
-// (globalThis as any).__APP_T0_MS ??= Date.now();
 
-// hook
+// --- Earliest possible t0 in this file (fallback when no custom entry exists)
+(globalThis as any).__APP_T0_MS ??= Date.now();
+(globalThis as any).__HAS_STARTED_BEFORE ??= false;
+
+// Safe rAF wrapper (Hermes-friendly)
+const raf =
+  globalThis.requestAnimationFrame ??
+  ((cb: FrameRequestCallback) => setTimeout(() => cb(Date.now()), 0));
 
 const qc = new QueryClient();
+
+function logPerf(event: string, payload: Record<string, unknown>) {
+  if (__DEV__) {
+    // Dev: console only
+
+    console.log(`[PERF] ${event}`, payload);
+    return;
+  }
+  // Prod: example POST (keep tiny)
+  // void fetch("https://your.api/perf", {
+  //   method: "POST",
+  //   headers: { "Content-Type": "application/json", "X-Benchmark": "1" },
+  //   body: JSON.stringify({ event, ...payload }),
+  // }).catch(() => {});
+}
+
 const InitialLayout = () => {
   const auth = getAuth();
-  const [initializing, setInitializing] = useState(true);
   const { user, loading } = useAuth();
+
   const isLoaded = !loading;
   const isSignedIn = !!user;
-  const reported = useRef(false);
 
-  // useEffect(() => {
-  //   if (!reported.current && isLoaded) {
-  //     InteractionManager.runAfterInteractions(() => {
-  //       if (reported.current) return;
-  //       const t0 = (globalThis as any).__APP_T0_MS ?? Date.now();
-  //       const tReady = Date.now() - t0;
+  const firstInteractiveReported = useRef(false);
+  const skipNextActive = useRef(true); // ignore initial 'active' (cold-ish already measured)
 
-  //       // Send to logs or analytics
-  //       // Keep simple console for manual runs. Replace with your analytics event if needed.
-  //       // Example analytics: analytics().logEvent('perf_first_interactive', { ms: tReady });
-  //       // Tag makes it easy to grep in logcat or Xcode
-  //       // Only log in release to avoid noise during dev
-  //       if (__DEV__) {
-  //         // console.log(`[PERF] first_interactive_ms=${tReady}`);
-  //       }
-  //       reported.current = true;
-  //     });
-  //   }
-  // }, [isLoaded]);
+  // ---- Measure "first interactive" (cold-ish start with this fallback)
+  useEffect(() => {
+    if (firstInteractiveReported.current || !isLoaded) return;
+
+    InteractionManager.runAfterInteractions(() => {
+      raf(() => {
+        if (firstInteractiveReported.current) return;
+
+        const t0 =
+          (globalThis as any).__APP_T0_MS ??
+          globalThis.performance?.timeOrigin ??
+          Date.now();
+
+        const tReady = Date.now() - t0;
+        const wasCold = !(globalThis as any).__HAS_STARTED_BEFORE;
+
+        logPerf("first_interactive_ms", {
+          ms: tReady,
+          cold_start: wasCold,
+          platform: Platform.OS,
+        });
+
+        (globalThis as any).__HAS_STARTED_BEFORE = true;
+        firstInteractiveReported.current = true;
+      });
+    });
+  }, [isLoaded]);
+
+  // ---- Measure warm start (resume from background) to interactive
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state !== "active") return;
+
+      // Skip the initial 'active' from fresh launch
+      if (skipNextActive.current) {
+        skipNextActive.current = false;
+        return;
+      }
+
+      const tResume0 = Date.now();
+
+      InteractionManager.runAfterInteractions(() => {
+        raf(() => {
+          const tResume = Date.now() - tResume0;
+          logPerf("warm_start_ms", {
+            ms: tResume,
+            platform: Platform.OS,
+          });
+        });
+      });
+    });
+
+    return () => sub.remove();
+  }, []);
+
   if (!isLoaded) return null;
 
   return (

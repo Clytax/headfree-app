@@ -133,8 +133,11 @@ export default function EmergencyLogCard<S extends string, T extends string>({
             <MyTouchableOpacity
               style={[styles.timeButton, { marginRight: wp(2) }]}
               onPress={setNow}
+              accessible
               accessibilityRole={"button" as AccessibilityRole}
               accessibilityLabel="Set start time to now"
+              accessibilityHint="Sets the timer start time to the current time"
+              hitSlop={8}
             >
               <Text fontSize={getFontSize(14)} color={Colors.primary}>
                 Set Now
@@ -144,8 +147,11 @@ export default function EmergencyLogCard<S extends string, T extends string>({
             <MyTouchableOpacity
               style={styles.timeButton}
               onPress={handlePickTimePress}
+              accessible
               accessibilityRole={"button" as AccessibilityRole}
               accessibilityLabel="Pick start time today"
+              accessibilityHint="Open the time picker to select a start time for today"
+              hitSlop={8}
             >
               <Text fontSize={getFontSize(14)} color={Colors.primary}>
                 {symptomLog.startTime || "Pick Time"}
@@ -193,8 +199,12 @@ export default function EmergencyLogCard<S extends string, T extends string>({
                     selected && styles.selectedPainLevel,
                   ]}
                   onPress={() => onSetPainLevel(level)}
+                  accessible
                   accessibilityRole={"button" as AccessibilityRole}
                   accessibilityLabel={`Set pain level to ${level}`}
+                  accessibilityHint={`Sets the pain level to ${level} out of the scale`}
+                  accessibilityState={{ selected: !!selected }}
+                  hitSlop={8}
                 >
                   <Text
                     fontSize={getFontSize(12)}
@@ -230,8 +240,12 @@ export default function EmergencyLogCard<S extends string, T extends string>({
                     selected && styles.selectedOption,
                   ]}
                   onPress={() => onToggleSymptom(symptom)}
+                  accessible
                   accessibilityRole={"button" as AccessibilityRole}
                   accessibilityLabel={`Toggle symptom ${symptom}`}
+                  accessibilityHint={`Toggles ${symptom} as an active symptom`}
+                  accessibilityState={{ selected: !!selected }}
+                  hitSlop={8}
                 >
                   <Text
                     fontSize={getFontSize(12)}

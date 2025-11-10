@@ -30,10 +30,10 @@ const HomeStack = () => {
       <Stack.Screen
         name="index"
         options={{
-          title: "Home",
           headerStyle: {
             backgroundColor: Colors.neutral800,
           },
+          headerTitle: "",
           headerLeft: () => (
             <Text fontWeight="bold">Hi {user?.displayName ?? ""}</Text>
           ),

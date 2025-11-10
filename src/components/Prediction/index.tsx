@@ -74,7 +74,6 @@ const HomePredictionBottomSheet = forwardRef<
   }, [stopCycling]);
 
   useImperativeHandle(ref, () => ({ present, dismiss }), [present, dismiss]);
-
   const handleGeneratePrediction = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -82,15 +81,32 @@ const HomePredictionBottomSheet = forwardRef<
     try {
       const auth = getAuth();
       const userToken = await getIdToken(auth.currentUser!, true);
-      const { data, outcome } = await callPredict(userToken, 20000);
+      const { outcome, data } = await callPredict(userToken, 20000, {
+        amountOfTests: 1,
+        force: false,
+      });
+
       setLatencyMs(outcome.ms);
 
-      if (__DEV__)
+      if (outcome.ok) {
+        // Type is narrowed to the success variant here
         console.log(
-          `[PERF] predict outcome=${outcome.ok ? "ok" : outcome.kind} ms=${
-            outcome.ms
-          } status=${(outcome as any).status ?? ""}`
+          `[PERF] avg=${outcome.ms.toFixed(1)}ms ` +
+            `p50=${outcome.p50Ms?.toFixed(1)} ` +
+            `p90=${outcome.p90Ms?.toFixed(1)} ` +
+            `samples=${outcome.samples?.length ?? 1}`
+          // `Peak RSS`
+          //   + ` peakRssKb50=${outcome.peakRssP50Kb?.toFixed(1)}kb`
+          //   + ` peakRssKb90=${outcome.peakRssP90Kb?.toFixed(1)}kb`
+          //   + `peakRssSamples=${outcome.peakRssKbSamples? ?? 0}`
         );
+      } else {
+        console.log(
+          `[PERF] predict failed kind=${outcome.kind} status=${
+            outcome.status ?? ""
+          } ms=${outcome.ms}`
+        );
+      }
 
       if (!outcome.ok) throw new Error(outcome.kind);
       setPredictionResult(data as IUserPrediction);

@@ -210,6 +210,15 @@ const SignIn = () => {
                     style={styles.biometricButton}
                     onPress={onBiometricPress}
                     disabled={isBiometricAuthenticating}
+                    accessible
+                    accessibilityRole="button"
+                    accessibilityLabel="Use biometrics to authenticate"
+                    accessibilityHint="Opens Face ID or Touch ID to authenticate"
+                    accessibilityState={{
+                      busy: isBiometricAuthenticating,
+                      disabled: !!isBiometricAuthenticating,
+                    }}
+                    hitSlop={8}
                   >
                     <MaterialCommunityIcons
                       name={

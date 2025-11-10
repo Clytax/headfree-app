@@ -159,6 +159,11 @@ export default function MyTabBar({
                   key={route.key}
                   onPress={onPress}
                   style={styles.item}
+                  accessible
+                  accessibilityRole="button"
+                  accessibilityLabel={`${label} tab`}
+                  accessibilityHint={`Navigate to ${label}`}
+                  hitSlop={8}
                 >
                   <View style={styles.itemInner}>
                     <Feather
@@ -203,6 +208,13 @@ export default function MyTabBar({
                   key={route.key}
                   onPress={onPress}
                   style={styles.item}
+                  accessible
+                  accessibilityRole="button"
+                  accessibilityLabel={`${label} tab`}
+                  accessibilityHint={`Navigate to ${label}`}
+                  // Optional: include selection state if you have it (replace `isFocused` accordingly)
+                  // accessibilityState={{ selected: !!isFocused }}
+                  hitSlop={8}
                 >
                   <View style={styles.itemInner}>
                     <Feather

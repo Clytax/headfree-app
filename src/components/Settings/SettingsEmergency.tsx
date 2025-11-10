@@ -201,6 +201,22 @@ const SettingsEmergency = () => {
           ]}
           onPress={toggleBrightnessDisabled}
           disabled={saving.brightness}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel={
+            brightnessDisabled ? "Enable brightness" : "Disable brightness"
+          }
+          accessibilityHint={
+            brightnessDisabled
+              ? "Enable brightness adjustments"
+              : "Disable brightness adjustments"
+          }
+          accessibilityState={{
+            disabled: !!saving.brightness,
+            busy: !!saving.brightness,
+            selected: !!brightnessDisabled,
+          }}
+          hitSlop={8}
         >
           <Text color="#fff" fontWeight="bold">
             {brightnessDisabled ? "Enable brightness" : "Disable brightness"}

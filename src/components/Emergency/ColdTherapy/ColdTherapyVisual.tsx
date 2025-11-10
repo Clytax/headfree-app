@@ -221,16 +221,25 @@ const ColdTherapyVisual: React.FC<ColdTherapyVisualProps> = ({
               key={s}
               style={[styles.spotChip, selected && styles.spotChipSelected]}
               onPress={() => setActiveSpot(s)}
+              accessible
               accessibilityRole="button"
               accessibilityLabel={`Select spot ${s}`}
+              accessibilityHint={`Selects the ${s} spot`}
+              accessibilityState={{ selected: !!selected }}
+              hitSlop={8}
             >
-              <View style={styles.spotIcon}>
+              <View
+                style={styles.spotIcon}
+                accessibilityElementsHidden={true}
+                importantForAccessibility="no-hide-descendants"
+              >
                 <Ionicons
                   name={s === "Back of neck" ? "snow-outline" : "snow"}
                   size={getFontSize(16)}
                   color={selected ? Colors.white : Colors.primary}
                 />
               </View>
+
               <Text
                 fontSize={getFontSize(12)}
                 color={selected ? Colors.white : Colors.text}
@@ -264,8 +273,15 @@ const ColdTherapyVisual: React.FC<ColdTherapyVisualProps> = ({
                   secondsLeft === m * 60 && !running && styles.pillActive,
                 ]}
                 onPress={() => reset(m)}
+                accessible
                 accessibilityRole="button"
                 accessibilityLabel={`Set timer to ${m} minutes`}
+                accessibilityHint={`Sets the timer to ${m} minutes`}
+                accessibilityState={{
+                  selected: secondsLeft === m * 60 && !running,
+                  disabled: !!running,
+                }}
+                hitSlop={8}
               >
                 <Text
                   fontSize={getFontSize(12)}
@@ -308,8 +324,12 @@ const ColdTherapyVisual: React.FC<ColdTherapyVisualProps> = ({
             <MyTouchableOpacity
               style={[styles.controlBtn, styles.secondaryBtn]}
               onPress={() => setRunning(false)}
+              accessible
               accessibilityRole="button"
               accessibilityLabel="Pause cold timer"
+              accessibilityHint="Pauses the current cold timer"
+              accessibilityState={{ disabled: !running }}
+              hitSlop={8}
             >
               <Ionicons
                 name="pause"
@@ -324,8 +344,12 @@ const ColdTherapyVisual: React.FC<ColdTherapyVisualProps> = ({
             <MyTouchableOpacity
               style={[styles.controlBtn, styles.primaryBtn]}
               onPress={() => setRunning(true)}
+              accessible
               accessibilityRole="button"
               accessibilityLabel="Start cold timer"
+              accessibilityHint="Starts the cold timer"
+              accessibilityState={{ disabled: !!running }}
+              hitSlop={8}
             >
               <Ionicons
                 name="play"
@@ -341,8 +365,12 @@ const ColdTherapyVisual: React.FC<ColdTherapyVisualProps> = ({
           <MyTouchableOpacity
             style={[styles.controlBtn, styles.ghostBtn]}
             onPress={() => reset(defaultMinutes)}
+            accessible
             accessibilityRole="button"
             accessibilityLabel="Reset cold timer"
+            accessibilityHint="Resets the cold timer to the default duration"
+            accessibilityState={{ disabled: !!running }}
+            hitSlop={8}
           >
             <Ionicons
               name="refresh"

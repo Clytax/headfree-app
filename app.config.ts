@@ -20,7 +20,7 @@ module.exports = ({ config }: ConfigContext): ExpoConfig => {
           "Headfree writes health data only if you enable a feature that needs it.",
         UIDesignRequiresCompatibility: false,
       },
-      bundleIdentifier: "com.clytax.headfree",
+      bundleIdentifier: "com.ms.headfree",
       googleServicesFile: "./GoogleService-Info.plist",
       // process.env.IOS_FIREBASE_GOOGLE_SERVICE ?? "./GoogleService-Info.plist",
     },
@@ -30,7 +30,7 @@ module.exports = ({ config }: ConfigContext): ExpoConfig => {
         backgroundColor: "#ffffff",
       },
       edgeToEdgeEnabled: true,
-      package: "com.clytax.headfree",
+      package: "com.ms.headfree",
       googleServicesFile:
         process.env.ANDROID_FIREBASE_GOOGLE_SERVICE || "./google-services.json",
     },

@@ -295,9 +295,11 @@ const OnboardingProfileCard = () => {
 
     // Auto-advance to next question after a short delay
     setTimeout(() => {
-      if (currentIndex < ALL_OPTIONS.length - 1) {
-        setCurrentIndex((i) => i + 1);
-      }
+      setCurrentIndex((prev) => {
+        // clamp to last index so we never go out-of-bounds
+        if (prev >= ALL_OPTIONS.length - 1) return prev;
+        return prev + 1;
+      });
     }, 300);
   };
 

@@ -56,7 +56,14 @@ const DailyTips = () => {
   };
   return (
     <View style={styles.container}>
-      <MyTouchableOpacity onPress={onPreviousTip}>
+      <MyTouchableOpacity
+        onPress={onPreviousTip}
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel="Previous tip"
+        accessibilityHint="Go to the previous daily tip"
+        hitSlop={8}
+      >
         <ChevronLeft color={Colors.neutral300} size={hp(3)} />
       </MyTouchableOpacity>
 
@@ -68,7 +75,16 @@ const DailyTips = () => {
         setIndex={setCurrentTipIndex}
       />
 
-      <MyTouchableOpacity onPress={onNextTip}>
+      <MyTouchableOpacity
+        onPress={onNextTip}
+        testID="next-daily-tip-button"
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel="Next tip"
+        accessibilityHint="Go to the next daily tip"
+        accessibilityIdentifier="next-daily-tip-button"
+        hitSlop={8}
+      >
         <ChevronRight color={Colors.neutral300} size={hp(3)} />
       </MyTouchableOpacity>
     </View>
