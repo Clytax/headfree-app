@@ -37,6 +37,12 @@ import { Colors, Sizes } from "@/constants";
 import { getFontSize } from "@/utils/text/fonts";
 import { wp, hp } from "@/utils/ui/sizes";
 import { getPredictionByDate } from "@/utils/firebase/prediction";
+import HistoryModal from "@/components/Outlook/PredictionHistory";
+import { MaterialIcons } from "@expo/vector-icons";
+import {
+  canShowPrompt,
+  clearDismissalTime,
+} from "@/utils/storage/predictionPrompt";
 
 const today = new Date();
 const todayJustDate = new Date(
@@ -49,6 +55,8 @@ const Home = () => {
   const router = useRouter();
   const user = useUser();
   const { user: userAuth } = useAuth();
+  const [historyVisible, setHistoryVisible] = useState(false);
+  const [canShowSheet, setCanShowSheet] = useState(false);
   const predictions = usePredictions().data;
   const segments = useSegments();
   const {
@@ -61,22 +69,46 @@ const Home = () => {
 
   const todaysPrediction = getPredictionByDate(predictions, todayJustDate);
   const hasTodaysPrediction = !!todaysPrediction;
+
+  // Check if we can show the prompt
   useEffect(() => {
-    // Show bottom sheet if no today's prediction AND no yesterday's entry
+    const checkPromptEligibility = async () => {
+      const eligible = await canShowPrompt();
+      setCanShowSheet(eligible);
+    };
+    checkPromptEligibility();
+  }, []);
+
+  useEffect(() => {
+    // Show bottom sheet if no today's prediction AND no yesterday's entry AND cooldown has passed
     if (
       !isLoadingYesterday &&
       !hasTodaysPrediction &&
       hasYesterdayEntry &&
-      segments.includes("(home-stack)")
+      segments.includes("(home-stack)") &&
+      canShowSheet
     ) {
       // Add a small delay for better UX
       const timer = setTimeout(() => {
-        bottomSheetRef.current?.present(); // Changed from open() to present()
+        bottomSheetRef.current?.present();
       }, 500);
 
       return () => clearTimeout(timer);
     }
-  }, [hasTodaysPrediction, hasYesterdayEntry, isLoadingYesterday, segments]);
+  }, [
+    hasTodaysPrediction,
+    hasYesterdayEntry,
+    isLoadingYesterday,
+    segments,
+    canShowSheet,
+  ]);
+
+  // Clear the dismissal time when user gets a prediction
+  useEffect(() => {
+    if (hasTodaysPrediction) {
+      clearDismissalTime();
+    }
+  }, [hasTodaysPrediction]);
 
   // Memoize the child components
   const MemoizedOutlook = React.memo(Outlook);
@@ -104,17 +136,29 @@ const Home = () => {
     MemoizedOutlook,
     MemoizedNoPrediction,
   ]);
+
   return (
     <View style={styles.container}>
       <Divider title="Daily Tip" />
       <DailyTips />
-      <Divider title="Outlook" />
+      <Divider
+        title="Outlook"
+        rightIcon={
+          <MaterialIcons name="history" size={20} color={Colors.primary} />
+        }
+        onPressRight={() => setHistoryVisible(true)}
+        rightAccessibilityLabel="Open prediction history"
+      />
       {outlookContent}
       <HomePredictionBottomSheet
         ref={bottomSheetRef}
         yesterdayDate={yesterdayDate}
-        onClose={() => bottomSheetRef.current?.dismiss()} // Changed from close() to dismiss()
+        onClose={() => bottomSheetRef.current?.dismiss()}
         userId={userAuth?.uid || ""}
+      />
+      <HistoryModal
+        visible={historyVisible}
+        onClose={() => setHistoryVisible(false)}
       />
     </View>
   );

@@ -20,7 +20,6 @@ export const defaultSteps: OnboardingSteps[] = [
   "policy",
   "emergencySetup",
   "migraineProfile",
-  "migraineDataSources",
   "notifications",
   "done",
 ];

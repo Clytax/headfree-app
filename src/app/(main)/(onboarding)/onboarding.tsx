@@ -56,7 +56,6 @@ type Step =
   | "policy"
   | "emergencySetup"
   | "migraineProfile"
-  | "migraineDataSources"
   | "notifications"
   | "done";
 const db = getFirestore();
@@ -66,7 +65,6 @@ const stepComponents: Record<Step, () => React.ReactElement> = {
   policy: () => <OnboardingPolicy />,
   emergencySetup: () => <OnboardingEmergency />,
   migraineProfile: () => <OnboardingProfile />,
-  migraineDataSources: () => <OnboardingDataSources />,
   notifications: () => <OnboardingNotifications />,
   done: () => <OnboardingFinish />,
 };

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { use, useCallback, useMemo, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -14,6 +14,7 @@ import {
   getFirestore,
   setDoc,
   serverTimestamp,
+  deleteDoc,
 } from "@react-native-firebase/firestore";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useFocusEffect, useRoute } from "@react-navigation/native"; // <-- added useRoute
@@ -31,6 +32,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
+  Trash2,
 } from "lucide-react-native";
 import { useUser } from "@/hooks/firebase/useUser";
 import useDailyEntryStore from "@/store/global/daily/useDailyEntryStore";
@@ -208,6 +210,75 @@ const DailyEntry: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // NEW: copying state for "Same as yesterday" operation
+  const [isCopyingYesterday, setIsCopyingYesterday] = useState(false);
+
+  const handleDeleteEntry = useCallback(() => {
+    if (!uid) {
+      Alert.alert("Auth", "You need to be signed in to delete this entry.");
+      return;
+    }
+
+    if (!hasEntryForSelectedDate) {
+      Alert.alert("No entry", `There is no saved entry for ${SELECTED_ISO}.`);
+      return;
+    }
+
+    Alert.alert(
+      "Delete entry",
+      `Are you sure you want to delete your entry for ${SELECTED_ISO}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              const db = getFirestore();
+              const entryRef = doc(db, "users", uid, "dailies", TODAY_ISO);
+
+              await deleteDoc(entryRef);
+
+              // optionally bump user updatedAt
+              const userRef = doc(db, "users", uid);
+              await setDoc(
+                userRef,
+                { updatedAt: serverTimestamp() },
+                { merge: true }
+              );
+
+              // clear local form state for this day
+              resetStore();
+              setExpandedKey(null);
+
+              Alert.alert(
+                "Deleted",
+                `Your entry for ${SELECTED_ISO} has been deleted.`
+              );
+            } catch (err) {
+              console.error("Failed to delete daily entry", err);
+              const message = err instanceof Error ? err.message : String(err);
+              Alert.alert("Error", `Failed to delete daily entry. ${message}`);
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  }, [
+    uid,
+    hasEntryForSelectedDate,
+    SELECTED_ISO,
+    TODAY_ISO,
+    resetStore,
+    setExpandedKey,
+  ]);
+
   // Handle scroll to update indicators
   const handleScroll = (event: any) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
@@ -231,7 +302,7 @@ const DailyEntry: React.FC = () => {
         scrollViewRef.current.getNativeScrollRef?.() || scrollViewRef.current,
         (x, y) => {
           scrollViewRef.current?.scrollTo({
-            y: Math.max(0, y - hp(10)),
+            y: Math.max(0, y - hp(12)),
             animated: true,
           });
         },
@@ -249,7 +320,27 @@ const DailyEntry: React.FC = () => {
       setExpandedKey(null);
     }
   };
-
+  const handleReset = useCallback(() => {
+    // confirm because reset is destructive
+    Alert.alert(
+      "Reset",
+      "Clear all answers for this day?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear",
+          style: "destructive",
+          onPress: () => {
+            resetStore();
+            // optional: reset expanded state and scroll to top
+            setExpandedKey(null);
+            scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  }, [resetStore]);
   // make the form hook date aware via overrideTodayISO
   const { TODAY_ISO, handleEntryChange, formValid, percent, pickValues } =
     useDailyEntryForm({
@@ -322,6 +413,56 @@ const DailyEntry: React.FC = () => {
     }
   }, [uid, formValid, pickValues, TODAY_ISO]);
 
+  // NEW: copy values from yesterday into the current form store
+  const handleCopyFromYesterday = useCallback(async () => {
+    if (!uid) {
+      Alert.alert("Auth", "You need to be signed in to copy from yesterday.");
+      return;
+    }
+    setIsCopyingYesterday(true);
+    try {
+      const yesterdayDate = addDays(selectedDate, -1);
+      const yesterdayISO = toISODate(yesterdayDate);
+      const db = getFirestore();
+      const prevRef = doc(db, "users", uid, "dailies", yesterdayISO);
+      const snap = await getDoc(prevRef);
+
+      if (!snap.exists()) {
+        Alert.alert("No entry", `No entry found for ${yesterdayISO}.`);
+        return;
+      }
+
+      const data = snap.data() || {};
+      // reset current form then apply values
+      resetStore();
+
+      // copy all keys except metadata
+      const forbidden = ["date", "createdAt", "updatedAt"];
+      Object.entries(data).forEach(([k, v]) => {
+        if (!forbidden.includes(k)) {
+          // updateEntryStore expects (key, value)
+          try {
+            updateEntryStore(k as any, v);
+          } catch (e) {
+            // ignore individual update errors but log
+            console.warn("Failed updating key from yesterday", k, e);
+          }
+        }
+      });
+
+      Alert.alert(
+        "Copied",
+        `Values from ${yesterdayISO} have been copied into ${SELECTED_ISO}.`
+      );
+    } catch (err) {
+      console.error("Error copying yesterday", err);
+      const message = err instanceof Error ? err.message : String(err);
+      Alert.alert("Error", `Failed to copy from yesterday. ${message}`);
+    } finally {
+      setIsCopyingYesterday(false);
+    }
+  }, [uid, selectedDate, resetStore, updateEntryStore, SELECTED_ISO]);
+
   return (
     <SafeAreaContainer style={styles.container}>
       <Text fontWeight="bold" fontSize={getFontSize(24)} textCenter>
@@ -329,6 +470,37 @@ const DailyEntry: React.FC = () => {
       </Text>
 
       <DateHeader date={selectedDate} onChange={setSelectedDate} />
+
+      {/* NEW: Same as yesterday button */}
+      <View style={styles.actionRow}>
+        <TouchableOpacity
+          onPress={handleReset}
+          style={[styles.actionButton, styles.actionButtonOutline]}
+          activeOpacity={0.8}
+          disabled={isSubmitting || isCopyingYesterday}
+        >
+          <Text style={styles.actionButtonText}>Reset</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleCopyFromYesterday}
+          style={[
+            styles.actionButton,
+            styles.actionButtonPrimary,
+            isCopyingYesterday || isSubmitting
+              ? styles.actionButtonDisabled
+              : null,
+          ]}
+          activeOpacity={0.8}
+          disabled={isCopyingYesterday || isSubmitting || !uid}
+        >
+          {isCopyingYesterday ? (
+            <ActivityIndicator size="small" color={Colors.white} />
+          ) : (
+            <Text style={styles.actionButtonText}>Same as yesterday</Text>
+          )}
+        </TouchableOpacity>
+      </View>
 
       {hasEntryForSelectedDate && (
         <Text
@@ -409,43 +581,71 @@ const DailyEntry: React.FC = () => {
       </ScrollView>
 
       {/* Scroll Indicators */}
-      {showTopIndicator && (
+      {/* {showTopIndicator && (
         <View style={styles.topIndicator}>
           <View style={styles.indicatorLine} />
           <Text fontSize={getFontSize(12)} color={Colors.neutral400}>
             More above ↑
           </Text>
         </View>
-      )}
+      )} */}
 
       <View style={styles.fabContainer}>
-        <TouchableOpacity
+        <View
           style={[
-            styles.fab,
-            formValid && !isSubmitting ? styles.fabActive : styles.fabInactive,
+            styles.fabRow,
+            {
+              justifyContent: hasEntryForSelectedDate
+                ? "space-between"
+                : "flex-end",
+            },
           ]}
-          onPress={saveEntry}
-          activeOpacity={0.8}
-          disabled={isSubmitting}
         >
-          {isSubmitting ? (
-            <Text style={styles.progressText} color={Colors.white}>
+          {/* Floating trash – only when there is an entry for this day */}
+          {hasEntryForSelectedDate && (
+            <TouchableOpacity
+              style={[styles.fab, styles.fabTrash]}
+              onPress={handleDeleteEntry}
+              activeOpacity={0.8}
+              disabled={isSubmitting || isDeleting}
+            >
+              {isDeleting ? (
+                <ActivityIndicator size="small" color={Colors.white} />
+              ) : (
+                <Trash2 size={22} color={Colors.white} />
+              )}
+            </TouchableOpacity>
+          )}
+
+          {/* Existing floating checkmark */}
+          <TouchableOpacity
+            style={[
+              styles.fab,
+              formValid && !isSubmitting
+                ? styles.fabActive
+                : styles.fabInactive,
+            ]}
+            onPress={saveEntry}
+            activeOpacity={0.8}
+            disabled={isSubmitting || isDeleting}
+          >
+            {isSubmitting ? (
               <ActivityIndicator size="small" color={Colors.white} />
-            </Text>
-          ) : (
-            <Check
-              size={24}
-              color={formValid ? Colors.white : Colors.neutral300}
-            />
-          )}
-          {percent > 0 && !isSubmitting && (
-            <View style={styles.progressBadge}>
-              <Text style={styles.progressText} color={Colors.textDark}>
-                {percent}%
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
+            ) : (
+              <Check
+                size={24}
+                color={formValid ? Colors.white : Colors.neutral300}
+              />
+            )}
+            {percent > 0 && !isSubmitting && !isDeleting && (
+              <View style={styles.progressBadge}>
+                <Text style={styles.progressText} color={Colors.textDark}>
+                  {percent}%
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaContainer>
   );
@@ -475,6 +675,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
+  // NEW styles for copy row / button
+  copyRow: {
+    paddingHorizontal: Sizes.containerPaddingHorizontal,
+    alignItems: "center",
+    marginBottom: hp(0.5),
+  },
+  copyButton: {
+    paddingVertical: hp(0.8),
+    paddingHorizontal: wp(3),
+    borderRadius: 8,
+    backgroundColor: Colors.primary || "#007AFF",
+    minWidth: wp(40),
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 2,
+  },
+  copyButtonDisabled: {
+    opacity: 0.7,
+  },
+  copyButtonText: {
+    color: Colors.white,
+    fontWeight: "600",
+    fontSize: getFontSize(12),
+  },
   scrollContainer: {
     flex: 1,
   },
@@ -486,8 +710,17 @@ const styles = StyleSheet.create({
   fabContainer: {
     position: "absolute",
     bottom: hp(3),
-    right: wp(5),
     zIndex: 1000,
+  },
+  fabRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Sizes.containerPaddingHorizontal,
+    width: "100%",
+  },
+
+  fabTrash: {
+    backgroundColor: Colors.error500 || "#FF3B30",
   },
   fab: {
     width: hp(7),
@@ -524,7 +757,8 @@ const styles = StyleSheet.create({
   },
   topIndicator: {
     position: "absolute",
-    top: hp(18),
+    opacity: 0.5,
+    top: "43%",
     left: 0,
     right: 0,
     alignItems: "center",
@@ -548,5 +782,42 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.neutral600,
     borderRadius: 1,
     marginVertical: hp(0.5),
+  },
+  actionRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: Sizes.containerPaddingHorizontal,
+    gap: wp(2),
+    marginBottom: hp(0.5),
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: hp(0.8),
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: wp(36),
+    elevation: 2,
+  },
+  actionButtonPrimary: {
+    backgroundColor: Colors.primary || "#007AFF",
+  },
+  actionButtonOutline: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: Colors.neutral400 || "#C7C7CC",
+  },
+  actionButtonDisabled: {
+    opacity: 0.6,
+  },
+  actionButtonText: {
+    color: Colors.white,
+    fontWeight: "600",
+    fontSize: getFontSize(12),
+  },
+  // if you want reset text to be dark on outline button:
+  actionButtonOutlineText: {
+    color: Colors.textDark,
   },
 });

@@ -16,6 +16,8 @@ const initialState: DailyEntryStore = {
   alcohol: null,
   smoking: null,
   traveled: null,
+  exercise: null,
+  lightExposure: null,
   emotion: null,
 };
 

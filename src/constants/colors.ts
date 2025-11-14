@@ -95,6 +95,9 @@ const FinalColors = {
   success: BaseColors.success300,
   warning: BaseColors.warning300,
   info: BaseColors.primary300,
+
+  // Components
+  modalBackdrop: BaseColors.neutral900 + "CC",
 };
 
 const Colors = { ...BaseColors, ...FinalColors };

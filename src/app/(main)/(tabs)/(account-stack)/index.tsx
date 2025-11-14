@@ -3,6 +3,9 @@ import { Pressable, StyleSheet, View, ScrollView, Alert } from "react-native";
 // Packages
 import { useRouter } from "expo-router";
 import { signOut, getAuth } from "@react-native-firebase/auth";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+
 import {
   getFirestore,
   doc,
@@ -99,33 +102,77 @@ const Account = () => {
     }
 
     setIsUpdating(true);
+    const uid = authUser.uid;
 
     try {
       const firestore = getFirestore();
-      const userDocRef = doc(firestore, "users", authUser.uid);
-      const userDoc = await getDoc(userDocRef);
-      const currentData = userDoc.data() || {};
+      const userDocRef = doc(firestore, "users", uid);
+      const userSnap = await getDoc(userDocRef);
+      const userData = userSnap.data() || {};
 
-      // Update last export timestamp
+      // Fetch subcollections (entries, predictions)
+      const getCollection = async (path: string) => {
+        const collectionRef = firestore.collection(path);
+        const snap = await collectionRef.get();
+
+        return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      };
+
+      const [entries, predictions] = await Promise.all([
+        getCollection(`users/${uid}/entries`),
+        getCollection(`users/${uid}/predictions`),
+      ]);
+
+      // Build export payload
+      const payload = {
+        uid,
+        exported_at: new Date().toISOString(),
+        data: {
+          user: { id: uid, ...userData },
+          entries,
+          predictions,
+        },
+        schema_version: 1,
+        app: { name: "Headfree", platform: "mobile" },
+      };
+
+      // Write file to app documents
+      const safeTs = new Date().toISOString().replace(/[:.]/g, "-");
+      const fileName = `headfree-export-${uid}-${safeTs}.json`;
+      const fileUri = FileSystem.documentDirectory + fileName;
+
+      await FileSystem.writeAsStringAsync(
+        fileUri,
+        JSON.stringify(payload, null, 2),
+        {
+          encoding: FileSystem.EncodingType.UTF8,
+        }
+      );
+
+      // Update last export timestamp (optional audit trail)
       await setDoc(
         userDocRef,
         {
-          ...currentData,
           privacy: {
-            ...currentData.privacy,
+            ...(userData.privacy || {}),
             lastDataExport: new Date().toISOString(),
           },
         },
         { merge: true }
       );
 
-      // TODO: Implement actual data export functionality
-      // This could trigger an email with JSON data, create a downloadable file, etc.
-      Alert.alert(
-        "Data Export Requested",
-        "Your data export has been requested. You will receive an email with your data shortly.",
-        [{ text: "OK" }]
-      );
+      // Share the file (if available), otherwise show path
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: "application/json",
+          dialogTitle: "Your Headfree data export",
+        });
+      } else {
+        Alert.alert(
+          "Export saved",
+          `Saved to:\n${fileUri}\n\nYou can copy this path with a file manager.`
+        );
+      }
     } catch (error) {
       console.error("Error exporting data:", error);
       Alert.alert("Error", "Failed to export data. Please try again.");
@@ -133,6 +180,7 @@ const Account = () => {
       setIsUpdating(false);
     }
   };
+
   const revokeRequiredConsent = () => {
     Alert.alert(
       "Revoke Privacy Consent",
@@ -459,7 +507,7 @@ const styles = StyleSheet.create({
     fontSize: getFontSize(13),
   },
   deletionButton: {
-    backgroundColor: Colors.warning500,
+    backgroundColor: Colors.warning500 + "44",
     paddingVertical: Sizes.paddingVerticalMedium,
     paddingHorizontal: Sizes.paddingHorizontalMedium,
     borderRadius: Sizes.buttonRadius,
@@ -470,7 +518,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   deletionButtonText: {
-    color: Colors.white,
+    color: Colors.neutral200,
     fontSize: getFontSize(14),
   },
   signOutButton: {

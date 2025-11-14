@@ -58,10 +58,8 @@
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
       ],
-
       "expo-secure-store",
       "@react-native-firebase/app",
-
       "@react-native-firebase/auth"
     ],
     "experiments": {
@@ -73,6 +71,38 @@
         "projectId": "00d7a4da-6c76-49a5-9e9d-8804cadae0dc"
       }
     },
-    "owner": "clytax"
+    "owner": "clytax",
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/00d7a4da-6c76-49a5-9e9d-8804cadae0dc"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.ms.headfree",
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSHealthShareUsageDescription": "Headfree reads health data to improve migraine risk predictions.",
+        "NSHealthUpdateUsageDescription": "Headfree writes health data only if you enable a feature that needs it.",
+        "UIDesignRequiresCompatibility": true
+      },
+      "bundleIdentifier": "com.ms.headfree",
+      "googleServicesFile": "./GoogleService-Info.plist"
+    }
   }
 }

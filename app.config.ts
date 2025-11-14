@@ -18,7 +18,7 @@ module.exports = ({ config }: ConfigContext): ExpoConfig => {
           "Headfree reads health data to improve migraine risk predictions.",
         NSHealthUpdateUsageDescription:
           "Headfree writes health data only if you enable a feature that needs it.",
-        UIDesignRequiresCompatibility: false,
+        UIDesignRequiresCompatibility: true,
       },
       bundleIdentifier: "com.ms.headfree",
       googleServicesFile: "./GoogleService-Info.plist",

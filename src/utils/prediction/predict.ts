@@ -49,6 +49,7 @@ async function singlePredictCall(
     const base =
       process.env.EXPO_PUBLIC_HEADFREE_API?.replace(/\/+$/, "") ?? "";
     const url = new URL(base + "/predict");
+    console.log("url: ", url);
     if (opts?.force) url.searchParams.set("force", "1");
 
     const predictionDate =
@@ -86,10 +87,12 @@ async function singlePredictCall(
     try {
       const data = await res.json();
       return { data, outcome: { ok: true, ms }, rssKb };
-    } catch {
+    } catch (err) {
+      console.log(`[ERROR] failed to parse /predict response as JSON`, err);
       return { outcome: { ok: false, ms, kind: "parse" }, rssKb };
     }
   } catch (err: any) {
+    console.log("error: ", err.message);
     clearTimeout(timer);
     const ms = Date.now() - t0;
     if (err?.name === "AbortError")

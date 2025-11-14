@@ -122,7 +122,7 @@ const SignUp = () => {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
+        keyboardVerticalOffset={headerHeight + 10}
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"

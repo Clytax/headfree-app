@@ -1,22 +1,27 @@
 import { formatFeatureName } from "@/components/Prediction/utils/predictionUtils";
+const toSentenceFragment = (name: string): string => {
+  // Lowercase first character so it fits after "your"
+  const lower = name.charAt(0).toLowerCase() + name.slice(1);
+
+  // Make "Today" → "today" so it reads naturally
+  return lower.replace(" Today", " today");
+};
+const joinWithCommasAndAnd = (items: string[]): string => {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+};
 
 export const getOutlookRiskFactorsText = (factors: string[]) => {
-  const properFactors = factors.map((factor) => formatFeatureName(factor));
-
-  let baseText = "Today's risk is mainly influenced by your ";
-
-  if (properFactors.length === 1) {
-    baseText += `${properFactors[0]}.`;
-  } else if (properFactors.length === 2) {
-    baseText += `${properFactors[0]} and ${properFactors[1]}.`;
-  } else if (properFactors.length > 2) {
-    // For 3+ factors, join with commas and "and" before the last one
-    baseText += `${properFactors[0]}, ${properFactors[1]}, and ${properFactors[2]}.`;
-  } else {
-    baseText = "No significant risk factors today.";
+  if (!factors.length) {
+    return "No significant risk factors today.";
   }
 
-  return baseText;
+  const properFactors = factors.map((factor) => formatFeatureName(factor));
+  const listText = joinWithCommasAndAnd(properFactors);
+
+  return `Today's risk is mainly influenced by ${listText}.`;
 };
 
 export const getOutlookGuideText = (percentage: number) => {

@@ -1,6 +1,16 @@
 // components/DailyEntry/DailyEntryMenstruationCycle.tsx
 import React, { useCallback, useMemo, useState } from "react";
-import { Alert, Linking, Platform } from "react-native";
+import {
+  Alert,
+  Linking,
+  Platform,
+  Modal,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  Text as RNText,
+} from "react-native";
 import { Droplet } from "lucide-react-native";
 import DailyEntryDataSource from "@/components/DailyEntry/DailyEntryDataSource";
 import {
@@ -13,6 +23,9 @@ import {
 } from "@kingstinct/react-native-healthkit";
 import type { CategoryTypeIdentifier } from "@kingstinct/react-native-healthkit";
 import useDailyEntryStore from "@/store/global/daily/useDailyEntryStore";
+import Text from "@/components/common/Text";
+import { Colors, Sizes } from "@/constants";
+import { wp, hp } from "@/utils/ui/sizes";
 
 type Props = { isBusy?: boolean };
 
@@ -191,12 +204,23 @@ function determineStage(
   return { stage: "luteal", evidence: "Post mid cycle without flow" };
 }
 
+const STAGE_OPTIONS: { key: Stage; label: string }[] = [
+  { key: "menstruation", label: "Menstruation" },
+  { key: "ovulation", label: "Ovulation" },
+  { key: "follicular", label: "Follicular" },
+  { key: "luteal", label: "Luteal" },
+  { key: "unknown", label: "Unknown" },
+];
+
 const DailyEntryMenstruationCycle: React.FC<Props> = ({ isBusy }) => {
   const updateDailyEntry = useDailyEntryStore((s) => s.updateEntryStore);
 
   const [headline, setHeadline] = useState<string[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [manualModalVisible, setManualModalVisible] = useState(false);
+  const [selectedStage, setSelectedStage] = useState<Stage | null>(null);
 
   const [, requestAuthorization] = useHealthkitAuthorization([
     MENSTRUAL_FLOW_TYPE,
@@ -345,24 +369,237 @@ const DailyEntryMenstruationCycle: React.FC<Props> = ({ isBusy }) => {
     updateDailyEntry("menstrualCycle", null);
   }, [updateDailyEntry]);
 
+  // Manual modal handlers
+  const openManualModal = useCallback(() => {
+    setSelectedStage(null);
+    setManualModalVisible(true);
+  }, []);
+
+  const cancelManual = useCallback(() => {
+    setSelectedStage(null);
+    setManualModalVisible(false);
+  }, []);
+
+  const confirmManual = useCallback(() => {
+    if (!selectedStage) {
+      Alert.alert("Select stage", "Please select a stage before confirming.");
+      return;
+    }
+
+    const stage = selectedStage;
+    const evidence = "User selected";
+
+    setHeadline([`Stage ${stage}`, `Reason ${evidence}`]);
+    setIsConnected(true);
+    updateDailyEntry("menstrualCycle", {
+      stage,
+      evidence,
+      source: "manual",
+      timestampISO: new Date().toISOString(),
+    });
+    setManualModalVisible(false);
+  }, [selectedStage, updateDailyEntry]);
+
   const usages = useMemo(() => {
     if (!isConnected) return CYCLE_CONFIG.baseUsages;
     return headline.filter(Boolean);
   }, [isConnected, headline]);
 
   return (
-    <DailyEntryDataSource
-      icon={Droplet}
-      title={CYCLE_CONFIG.title}
-      description={CYCLE_CONFIG.description}
-      usages={usages}
-      isConnected={isConnected}
-      isLoading={isLoading || !!isBusy}
-      onConnect={handleConnect}
-      onRefresh={handleRefresh}
-      onDisconnect={handleDisconnect}
-    />
+    <>
+      <DailyEntryDataSource
+        icon={Droplet}
+        title={CYCLE_CONFIG.title}
+        description={CYCLE_CONFIG.description}
+        usages={usages}
+        isConnected={isConnected}
+        isLoading={isLoading || !!isBusy}
+        onConnect={handleConnect}
+        onRefresh={handleRefresh}
+        onDisconnect={handleDisconnect}
+        onManualEntry={openManualModal}
+      />
+
+      {/* ===== Replace current Modal block with this ===== */}
+      <Modal
+        visible={manualModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={cancelManual}
+      >
+        <View style={modalStyles.backdrop}>
+          <View style={modalStyles.container}>
+            <Text fontWeight="bold" fontSize={18} style={modalStyles.title}>
+              Select cycle stage
+            </Text>
+
+            <View style={modalStyles.optionsGrid}>
+              {STAGE_OPTIONS.map((item) => {
+                const selected = selectedStage === item.key;
+                return (
+                  <TouchableOpacity
+                    key={item.key}
+                    style={[
+                      modalStyles.optionButton,
+                      selected ? modalStyles.optionButtonSelected : null,
+                    ]}
+                    onPress={() => setSelectedStage(item.key)}
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                  >
+                    <View style={modalStyles.optionContent}>
+                      <RNText
+                        style={[
+                          modalStyles.optionLabel,
+                          selected ? modalStyles.optionLabelSelected : null,
+                        ]}
+                      >
+                        {item.label}
+                      </RNText>
+
+                      {/* simple checkmark - visible when selected */}
+                      <RNText
+                        style={[
+                          modalStyles.checkMark,
+                          selected ? modalStyles.checkMarkVisible : null,
+                        ]}
+                        accessible={false}
+                      >
+                        ✓
+                      </RNText>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View style={modalStyles.actionsRow}>
+              <TouchableOpacity
+                onPress={cancelManual}
+                style={[modalStyles.actionBtn, modalStyles.cancelBtn]}
+                activeOpacity={0.8}
+              >
+                <Text>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={confirmManual}
+                style={[modalStyles.actionBtn, modalStyles.confirmBtn]}
+                activeOpacity={0.8}
+              >
+                <Text fontWeight="bold" color={Colors.white}>
+                  Use
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 };
 
 export default DailyEntryMenstruationCycle;
+const modalStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: Colors.blackTransparent,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: Sizes.containerPaddingHorizontal,
+  },
+  container: {
+    width: "100%",
+    maxHeight: "85%",
+    backgroundColor: Colors.backgroundLighter,
+    borderRadius: Sizes.mediumRadius,
+    padding: Sizes.containerPaddingHorizontal,
+    shadowColor: Colors.black,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
+  title: {
+    textAlign: "center",
+    marginBottom: hp(1),
+  },
+
+  // grid of buttons - responsive single column with small gaps
+  optionsGrid: {
+    flexDirection: "column",
+    gap: hp(0.5), // note: Android may ignore but keeps consistent spacing
+    marginBottom: hp(1),
+  },
+
+  // button look
+  optionButton: {
+    backgroundColor: Colors.background,
+    borderRadius: Sizes.smallRadius || 10,
+    paddingVertical: hp(1.2),
+    paddingHorizontal: wp(3),
+    borderWidth: 1,
+    borderColor: Colors.border,
+    // subtle shadow to make it feel elevated
+    shadowColor: Colors.black,
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  optionButtonSelected: {
+    backgroundColor: Colors.primary500,
+    borderColor: Colors.primary600 ?? Colors.primary500,
+    // stronger elevation for selected
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+
+  optionContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  optionLabel: {
+    color: Colors.text,
+    fontSize: 16,
+  },
+  optionLabelSelected: {
+    color: Colors.white,
+    fontWeight: "700",
+  },
+
+  checkMark: {
+    color: "transparent",
+    fontSize: 16,
+    marginLeft: wp(2),
+    opacity: 0,
+  },
+  checkMarkVisible: {
+    color: Colors.white,
+    opacity: 1,
+  },
+
+  actionsRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: wp(2),
+    marginTop: hp(1),
+  },
+  actionBtn: {
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(3),
+    borderRadius: Sizes.smallRadius || 8,
+  },
+  cancelBtn: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  confirmBtn: {
+    backgroundColor: Colors.primary500,
+  },
+});

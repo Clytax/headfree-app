@@ -20,7 +20,7 @@ import {
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
+import { CopilotProvider } from "react-native-copilot";
 // Utils
 import { rescheduleIfNeeded } from "@/services/reminders";
 
@@ -62,15 +62,17 @@ const AppContent = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <GestureHandlerRootView style={styles.container}>
-        <SafeAreaProvider style={styles.container}>
-          <NotificationsProvider>
-            <BottomSheetModalProvider>
-              {children}
-              <NotificationNavigator />
-              <BaseToast />
-            </BottomSheetModalProvider>
-          </NotificationsProvider>
-        </SafeAreaProvider>
+        <CopilotProvider overlay="svg" animated>
+          <SafeAreaProvider style={styles.container}>
+            <NotificationsProvider>
+              <BottomSheetModalProvider>
+                {children}
+                <NotificationNavigator />
+                <BaseToast />
+              </BottomSheetModalProvider>
+            </NotificationsProvider>
+          </SafeAreaProvider>
+        </CopilotProvider>
 
         {/* Privacy blur overlay */}
         {isBlurred && (

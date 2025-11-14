@@ -7,14 +7,16 @@ export interface DailyEntryChoiceProps {
   allowNull?: boolean;
 }
 
-export interface DailyEntryDataSourceProps {
-  onConnect: () => void;
-  onRefresh?: () => void; // new
-  onDisconnect?: () => void; // new
-  description: string;
-  title: string;
+type Props = {
   icon?: React.ComponentType<any>;
-  usages: string[];
+  title: string;
+  description?: string;
+  usages?: string[];
   isConnected?: boolean;
   isLoading?: boolean;
-}
+  onConnect?: () => void;
+  onRefresh?: () => void;
+  onDisconnect?: () => void;
+  onManualEntry?: () => void; // new prop for manual entry button
+  children?: React.ReactNode; // important: render children inside the card
+};

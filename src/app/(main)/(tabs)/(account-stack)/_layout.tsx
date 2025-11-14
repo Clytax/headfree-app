@@ -41,6 +41,7 @@ const AccountStack = () => {
       screenOptions={{
         animation: animationForStacks,
       }}
+      initialRouteName="index"
     >
       <Stack.Screen
         name="index"
@@ -83,6 +84,7 @@ const AccountStack = () => {
           },
 
           headerTintColor: Colors.text,
+          headerBackButtonDisplayMode: "minimal",
           headerRight: () => (
             <Entypo
               name="log-out"

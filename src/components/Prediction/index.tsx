@@ -11,6 +11,11 @@ import { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Colors, Sizes } from "@/constants";
 import { wp, hp } from "@/utils/ui/sizes";
 import { getFontSize } from "@/utils/text/fonts";
+import {
+  canShowPrompt,
+  clearDismissalTime,
+  saveDismissalTime,
+} from "@/utils/storage/predictionPrompt";
 
 import { LOADING_MESSAGES, useLoadingMessages } from "./useLoadingMessages";
 import { getRiskColor } from "./utils/predictionUtils";
@@ -62,8 +67,13 @@ const HomePredictionBottomSheet = forwardRef<
   const present = useCallback(() => {
     bottomSheetRef.current?.present();
   }, []);
-  const dismiss = useCallback(() => {
+
+  const dismiss = useCallback(async () => {
     bottomSheetRef.current?.dismiss();
+
+    // Save dismissal time when "Maybe later" is clicked
+    await saveDismissalTime();
+
     setTimeout(() => {
       setIsLoading(false);
       setError(null);
@@ -72,7 +82,6 @@ const HomePredictionBottomSheet = forwardRef<
       stopCycling();
     }, 300);
   }, [stopCycling]);
-
   useImperativeHandle(ref, () => ({ present, dismiss }), [present, dismiss]);
   const handleGeneratePrediction = useCallback(async () => {
     setIsLoading(true);
@@ -84,6 +93,9 @@ const HomePredictionBottomSheet = forwardRef<
       const { outcome, data } = await callPredict(userToken, 20000, {
         amountOfTests: 1,
         force: false,
+        // predictionDate: new Date(new Date().setDate(new Date().getDate() - 5))
+        //   .toISOString()
+        //   .slice(0, 10),
       });
 
       setLatencyMs(outcome.ms);

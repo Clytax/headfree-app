@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-
 // Packages
 import { useRouter } from "expo-router";
 import { getFirestore, doc, setDoc } from "@react-native-firebase/firestore";
@@ -28,10 +27,10 @@ const Settings = () => {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <SettingsEmergency />
       <SettingsNotifications />
-    </View>
+    </ScrollView>
   );
 };
 

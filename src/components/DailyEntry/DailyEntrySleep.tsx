@@ -1,6 +1,15 @@
 // components/DailyEntry/DailyEntrySleep.tsx
 import React, { useCallback, useMemo, useState } from "react";
-import { Alert, Linking, Platform } from "react-native";
+import {
+  Alert,
+  Linking,
+  Platform,
+  Modal,
+  View,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import { Moon } from "lucide-react-native";
 import DailyEntryDataSource from "@/components/DailyEntry/DailyEntryDataSource";
 import {
@@ -10,10 +19,11 @@ import {
   useHealthkitAuthorization,
 } from "@kingstinct/react-native-healthkit";
 import type { CategoryTypeIdentifier } from "@kingstinct/react-native-healthkit";
-
-// Utils
+import Text from "@/components/common/Text";
 import { computeSleepScore } from "@/utils/health/sleepScore";
 import useDailyEntryStore from "@/store/global/daily/useDailyEntryStore";
+import { Colors, Sizes } from "@/constants";
+import { wp, hp } from "@/utils/ui/sizes";
 
 type Props = { isBusy?: boolean };
 
@@ -132,6 +142,11 @@ const DailyEntrySleep: React.FC<Props> = ({ isBusy }) => {
   const [headline, setHeadline] = useState<string[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Modal state for manual entry
+  const [manualModalVisible, setManualModalVisible] = useState(false);
+  const [manualHours, setManualHours] = useState("");
+  const [manualMinutes, setManualMinutes] = useState("");
 
   const [, requestAuthorization] = useHealthkitAuthorization([SLEEP_TYPE]);
 
@@ -266,24 +281,207 @@ const DailyEntrySleep: React.FC<Props> = ({ isBusy }) => {
     updateDailyEntry("sleep", null);
   }, [updateDailyEntry]);
 
+  // Manual entry handler: opens modal
+  const handleOpenManual = useCallback(() => {
+    setManualHours("");
+    setManualMinutes("");
+    setManualModalVisible(true);
+  }, []);
+
+  // Validate and save manual entry
+  const handleSaveManual = useCallback(() => {
+    const h = parseInt(manualHours || "0", 10);
+    const m = parseInt(manualMinutes || "0", 10);
+
+    if (Number.isNaN(h) || Number.isNaN(m) || h < 0 || m < 0 || m >= 60) {
+      Alert.alert("Invalid input", "Please enter valid hours and minutes.");
+      return;
+    }
+
+    const totalMinutes = h * 60 + m;
+    if (totalMinutes <= 0) {
+      Alert.alert(
+        "Invalid duration",
+        "Please enter a duration greater than 0."
+      );
+      return;
+    }
+
+    // Build headline and payload similar to summariseSleep
+    const headlineArr = [
+      `Total sleep ${h}h ${m}m`,
+      "Interruptions 0",
+      "Sleep score coming soon",
+    ];
+    setHeadline(headlineArr);
+    setIsConnected(true);
+
+    const endTime = new Date();
+    const startTime = new Date(Date.now() - totalMinutes * 60 * 1000);
+
+    updateDailyEntry("sleep", {
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      totalSleepMinutes: totalMinutes,
+      interruptions: 0,
+      score: 0,
+    });
+
+    setManualModalVisible(false);
+  }, [manualHours, manualMinutes, updateDailyEntry]);
+
   const usages = useMemo(() => {
     if (!isConnected) return SLEEP_CONFIG.baseUsages;
     return [...headline];
   }, [isConnected, headline]);
 
   return (
-    <DailyEntryDataSource
-      icon={Moon}
-      title={SLEEP_CONFIG.title}
-      description={SLEEP_CONFIG.description}
-      usages={usages}
-      isConnected={isConnected}
-      isLoading={isLoading || !!isBusy}
-      onConnect={handleConnect}
-      onRefresh={handleRefresh}
-      onDisconnect={handleDisconnect}
-    />
+    <>
+      <DailyEntryDataSource
+        icon={Moon}
+        title={SLEEP_CONFIG.title}
+        description={SLEEP_CONFIG.description}
+        usages={usages}
+        isConnected={isConnected}
+        isLoading={isLoading || !!isBusy}
+        onConnect={handleConnect}
+        onRefresh={handleRefresh}
+        onDisconnect={handleDisconnect}
+        onManualEntry={handleOpenManual}
+      />
+
+      <Modal
+        visible={manualModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setManualModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContainer}>
+            <Text fontWeight="bold" fontSize={18} style={styles.modalTitle}>
+              Enter sleep duration
+            </Text>
+
+            <View style={styles.inputsRow}>
+              <View style={styles.inputWrap}>
+                <Text fontSize={14} style={styles.inputLabel}>
+                  Hours
+                </Text>
+                <TextInput
+                  value={manualHours}
+                  onChangeText={setManualHours}
+                  keyboardType="number-pad"
+                  placeholder="0"
+                  placeholderTextColor={Colors.neutral400}
+                  style={styles.input}
+                  maxLength={3}
+                />
+              </View>
+
+              <View style={styles.inputWrap}>
+                <Text fontSize={14} style={styles.inputLabel}>
+                  Minutes
+                </Text>
+                <TextInput
+                  value={manualMinutes}
+                  onChangeText={setManualMinutes}
+                  keyboardType="number-pad"
+                  placeholder="0"
+                  placeholderTextColor={Colors.neutral400}
+                  style={styles.input}
+                  maxLength={2}
+                />
+              </View>
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                onPress={() => setManualModalVisible(false)}
+                style={[styles.modalButton, styles.cancelButton]}
+                activeOpacity={0.8}
+              >
+                <Text fontWeight="bold">Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleSaveManual}
+                style={[styles.modalButton, styles.saveButton]}
+                activeOpacity={0.8}
+              >
+                <Text fontWeight="bold" color={Colors.white}>
+                  Save
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 };
 
 export default DailyEntrySleep;
+
+const styles = StyleSheet.create({
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: Colors.modalBackdrop,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: Sizes.containerPaddingHorizontal,
+  },
+  modalContainer: {
+    width: "100%",
+    backgroundColor: Colors.backgroundLighter,
+    borderRadius: Sizes.mediumRadius,
+    padding: Sizes.containerPaddingHorizontal,
+    shadowColor: Colors.black,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  modalTitle: {
+    marginBottom: hp(1),
+    textAlign: "center",
+  },
+  inputsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: wp(2),
+    marginBottom: hp(1.5),
+  },
+  inputWrap: {
+    flex: 1,
+  },
+  inputLabel: {
+    marginBottom: hp(0.5),
+    color: Colors.neutral200,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Sizes.smallRadius || 8,
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    color: Colors.text,
+    backgroundColor: Colors.background,
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: wp(2),
+  },
+  modalButton: {
+    paddingHorizontal: wp(3),
+    paddingVertical: hp(1),
+    borderRadius: Sizes.smallRadius || 8,
+  },
+  cancelButton: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  saveButton: {
+    backgroundColor: Colors.primary500,
+  },
+});

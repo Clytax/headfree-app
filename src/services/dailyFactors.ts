@@ -161,7 +161,7 @@ export const FACTORS: readonly FactorMeta[] = [
   },
   {
     key: "lightExposure",
-    kind: "number",
+    kind: "choice",
     initial: null,
     required: false,
     title: "Problematic Light",

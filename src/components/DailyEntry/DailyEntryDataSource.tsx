@@ -18,7 +18,6 @@ import { CircleCheck } from "lucide-react-native";
 import { wp, hp } from "@/utils/ui/sizes";
 import { getFontSize } from "@/utils/text/fonts";
 // Types
-import { DailyEntryDataSourceProps } from "@/components/DailyEntry/DailyEntry.types";
 // Components
 import Text from "@/components/common/Text";
 import MyTouchableOpacity from "@/components/common/Buttons/MyTouchableOpacity";
@@ -26,6 +25,18 @@ import SimpleButton from "@/components/common/Buttons/SimpleButton";
 
 const ANIM_MS = 220;
 
+export interface DailyEntryDataSourceProps {
+  title: string;
+  description: string;
+  icon?: React.ComponentType<{ color?: string; size?: number }>;
+  usages: string[];
+  isConnected?: boolean;
+  isLoading?: boolean;
+  onConnect: () => void;
+  onDisconnect: () => void;
+  onRefresh?: () => void;
+  onManualEntry?: () => void;
+}
 const DailyEntryDataSource = ({
   onConnect,
   onDisconnect,
@@ -36,6 +47,7 @@ const DailyEntryDataSource = ({
   usages,
   isConnected = false,
   isLoading = false, // Already included in props, adding default value
+  onManualEntry,
 }: DailyEntryDataSourceProps) => {
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
@@ -219,26 +231,51 @@ const DailyEntryDataSource = ({
             </View>
 
             {!isConnected ? (
-              <SimpleButton
-                title={isLoading ? "Loading..." : "Connect"}
-                variant="secondary"
-                size="sm"
-                onPress={onConnect}
-                disabled={isLoading}
-                rightIcon={
-                  !isLoading ? (
-                    <Animated.View
-                      entering={ZoomIn.delay(100)
-                        .springify()
-                        .damping(18)
-                        .stiffness(200)}
-                    >
-                      <CircleCheck color={Colors.secondary300} size={hp(2)} />
-                    </Animated.View>
-                  ) : undefined
-                }
-                contentStyle={{ marginBottom: Sizes.marginVerticalSmall / 1.5 }}
-              />
+              <>
+                <SimpleButton
+                  title={isLoading ? "Loading..." : "Connect"}
+                  variant="secondary"
+                  size="sm"
+                  onPress={onConnect}
+                  disabled={isLoading}
+                  rightIcon={
+                    !isLoading ? (
+                      <Animated.View
+                        entering={ZoomIn.delay(100)
+                          .springify()
+                          .damping(18)
+                          .stiffness(200)}
+                      >
+                        <CircleCheck color={Colors.secondary300} size={hp(2)} />
+                      </Animated.View>
+                    ) : undefined
+                  }
+                  contentStyle={{
+                    marginBottom: Sizes.marginVerticalSmall * 1.5,
+                  }}
+                />
+                <MyTouchableOpacity
+                  onPress={onManualEntry}
+                  accessible
+                  accessibilityRole="button"
+                  accessibilityLabel="Enter data manually"
+                  accessibilityHint="Opens the manual data entry screen"
+                  hitSlop={{
+                    top: 4,
+                    bottom: 8,
+                    left: 8,
+                    right: 8,
+                  }}
+                >
+                  <Text
+                    color={Colors.neutral400}
+                    textCenter
+                    onPress={onManualEntry}
+                  >
+                    Enter Manually
+                  </Text>
+                </MyTouchableOpacity>
+              </>
             ) : (
               <View
                 style={{
