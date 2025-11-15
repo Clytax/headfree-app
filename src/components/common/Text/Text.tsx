@@ -83,7 +83,7 @@ const Text = forwardRef(
         accessibilityElementsHidden={isDecorative}
         importantForAccessibility={isDecorative ? "no" : "auto"}
         // dynamic type and scaling
-        allowFontScaling={allowFontScaling}
+        allowFontScaling={false}
         maxFontSizeMultiplier={maxFontSizeMultiplier}
         adjustsFontSizeToFit={adjustsFontSizeToFit}
         minimumFontScale={minimumFontScale}

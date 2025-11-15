@@ -22,6 +22,7 @@ module.exports = ({ config }: ConfigContext): ExpoConfig => {
       },
       bundleIdentifier: "com.ms.headfree",
       googleServicesFile: "./GoogleService-Info.plist",
+      buildNumber: "1",
       // process.env.IOS_FIREBASE_GOOGLE_SERVICE ?? "./GoogleService-Info.plist",
     },
     android: {
@@ -33,6 +34,7 @@ module.exports = ({ config }: ConfigContext): ExpoConfig => {
       package: "com.ms.headfree",
       googleServicesFile:
         process.env.ANDROID_FIREBASE_GOOGLE_SERVICE || "./google-services.json",
+      versionCode: 1,
     },
   };
 };

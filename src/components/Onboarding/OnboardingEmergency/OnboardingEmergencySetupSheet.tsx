@@ -168,7 +168,7 @@ const EmergencySetupSheet = forwardRef<EmergencySetupSheetHandle, Props>(
     return (
       <BottomSheetModal
         ref={innerRef}
-        snapPoints={["60%"]}
+        snapPoints={["60%", "80%"]}
         enablePanDownToClose
         onDismiss={handleDismiss}
         backgroundStyle={bgStyle}

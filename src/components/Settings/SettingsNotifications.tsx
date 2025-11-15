@@ -252,6 +252,9 @@ const SettingsNotifications = () => {
         is24Hour
         themeVariant="dark"
         isDarkModeEnabled
+        pickerStyleIOS={{
+          alignItems: "center",
+        }}
       />
     </View>
   );

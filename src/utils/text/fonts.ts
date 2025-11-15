@@ -68,15 +68,20 @@ export const getFontSize = (
   overrideScreenCategory?: ScreenCategory
 ): number => {
   const deviceType = overrideDeviceType || getDeviceType();
-  const screenCategory = overrideScreenCategory || getScreenSizeCategory();
-  let newSize = size * getClampedScaleFactor(deviceType, screenCategory);
+
+  let newSize = size;
+
+  // Phones: keep the design size, no scaling between iPhone and Android
   if (deviceType === "tablet") {
-    newSize *= 1.1;
+    const screenCategory = overrideScreenCategory || getScreenSizeCategory();
+    const scaleFactor = getClampedScaleFactor("tablet", screenCategory);
+
+    // Use a *fixed* factor range for tablets, so they are just a bit larger
+    newSize = size * scaleFactor * 1.05; // tweak 1.05/1.1 until it looks right
   }
 
   return Math.round(PixelRatio.roundToNearestPixel(newSize));
 };
-
 export const adjustFontConfig = (
   deviceType: DeviceType,
   screenCategory: ScreenCategory,

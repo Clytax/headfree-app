@@ -196,10 +196,11 @@ const OnboardingNotifications = () => {
     <View style={styles.container}>
       <OnboardingTop />
 
-      <Animated.View
+      <Animated.ScrollView
         entering={enter(100)}
         exiting={exit(100)}
         style={styles.content}
+        contentContainerStyle={{ paddingBottom: hp(4) }}
       >
         <Text style={styles.title}>Stay on track with gentle reminders</Text>
         <Text style={styles.subtitle}>
@@ -242,7 +243,7 @@ const OnboardingNotifications = () => {
             </Pressable>
           </View>
         )}
-      </Animated.View>
+      </Animated.ScrollView>
 
       <DateTimePickerModal
         isVisible={pickerVisible}
@@ -253,6 +254,9 @@ const OnboardingNotifications = () => {
         is24Hour
         themeVariant="dark"
         isDarkModeEnabled
+        pickerStyleIOS={{
+          alignItems: "center",
+        }}
       />
     </View>
   );

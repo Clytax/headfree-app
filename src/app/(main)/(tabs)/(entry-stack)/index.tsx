@@ -136,6 +136,9 @@ const DateHeader = ({
         maximumDate={today}
         onConfirm={handleConfirm}
         onCancel={closePicker}
+        pickerStyleIOS={{
+          alignItems: "center",
+        }}
       />
     </View>
   );

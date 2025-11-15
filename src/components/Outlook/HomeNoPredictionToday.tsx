@@ -102,7 +102,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: hp(15),
-    backgroundColor: Colors.warning900 + "20",
     opacity: 0.3,
   },
   content: {

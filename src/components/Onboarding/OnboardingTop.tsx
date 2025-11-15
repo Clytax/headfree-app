@@ -51,15 +51,15 @@ const OnboardingTop = () => {
   const getIllustration = () => {
     switch (current) {
       case "Welcome":
-        return <WelcomeIllustration />;
+        return <WelcomeIllustration width={wp(60)} height={hp(30)} />;
       case "promises":
-        return <PromisesIllustration />;
+        return <PromisesIllustration width={wp(60)} height={hp(30)} />;
       case "policy":
-        return <ConsentIllustration />;
+        return <ConsentIllustration width={wp(60)} height={hp(30)} />;
       case "emergencySetup":
-        return <EmergencyIllustration />;
+        return <EmergencyIllustration width={wp(60)} height={hp(30)} />;
       case "migraineProfile":
-        return <MigraineProfileIllustration />;
+        return <MigraineProfileIllustration width={wp(60)} height={hp(20)} />;
       case "notifications":
         return <NotificationsIllustration width={wp(70)} height={hp(30)} />;
 
@@ -91,7 +91,7 @@ const OnboardingTop = () => {
       >
         <Text
           color={Colors.text}
-          fontSize={getFontSize(35)}
+          fontSize={getFontSize(30)}
           fontWeight="bold"
           textCenter
         >

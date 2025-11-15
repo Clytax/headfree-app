@@ -56,7 +56,7 @@ const OnboardingEmergency = () => {
             <Text
               color={Colors.neutral600}
               fontWeight="bold"
-              fontSize={getFontSize(40)}
+              fontSize={getFontSize(35)}
             >
               !
             </Text>

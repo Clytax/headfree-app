@@ -7,6 +7,7 @@ import { getFontSize } from "@/utils/text/fonts";
 import { EmergencyButtonProps } from "@/components/Emergency/Emergency.types";
 import { useEmergencyContext } from "@/context/emergency/EmergencyContext";
 import { useRouter } from "expo-router";
+import Toast from "react-native-toast-message";
 
 const HOLD_MS = 800;
 const SIZE = 96;
@@ -83,6 +84,13 @@ const EmergencyButton = ({ style }: EmergencyButtonProps) => {
         if (isEnabled) {
           // open emergency mode screen
           router.push("/emergency-mode");
+        } else {
+          Toast.show({
+            type: "info",
+            text1: "Hold the button to activate Emergency Mode",
+            position: "top",
+            visibilityTime: 2000,
+          });
         }
       }}
       style={[styles.button, { backgroundColor: baseColor }, style]}

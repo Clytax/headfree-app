@@ -1,6 +1,13 @@
 // React / React Native
 import { useEffect, useState } from "react";
-import { AppState, LogBox, StyleSheet, View } from "react-native";
+import {
+  AppState,
+  LogBox,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 // Components
 import BaseToast from "@/components/common/BaseToast";
@@ -20,7 +27,8 @@ import {
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { CopilotProvider } from "react-native-copilot";
+import * as NavigationBar from "expo-navigation-bar";
+
 // Utils
 import { rescheduleIfNeeded } from "@/services/reminders";
 
@@ -43,6 +51,12 @@ LogBox.ignoreLogs([""]);
 const AppContent = ({ children }: { children: React.ReactNode }) => {
   const [isBlurred, setIsBlurred] = useState(false);
   const { isBiometricAuthActive } = useBiometricAuth();
+
+  useEffect(() => {
+    NavigationBar.setVisibilityAsync("hidden");
+    NavigationBar.setBehaviorAsync("overlay-swipe"); // swipe from edge to show
+  }, []);
+
   // Handle app state changes for privacy screen
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {

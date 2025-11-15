@@ -75,6 +75,12 @@ const DailyEntryChoice = ({
     return found?.label ?? String(value);
   }, [choices, value]);
 
+  const COLLAPSED_LABEL_MAX_CHARS = 18;
+  const collapsedValueLabel = useMemo(() => {
+    if (!valueLabel) return valueLabel;
+    if (valueLabel.length <= COLLAPSED_LABEL_MAX_CHARS) return valueLabel;
+    return `${valueLabel.slice(0, COLLAPSED_LABEL_MAX_CHARS)}…`;
+  }, [valueLabel]);
   const animatedBorder = useAnimatedStyle(() => {
     const border = interpolateColor(
       progress.value,
@@ -152,13 +158,14 @@ const DailyEntryChoice = ({
                 </Text>
               </View>
 
-              <View>
+              <View style={styles.valueContainer}>
                 <Text
                   fontSize={getFontSize(16)}
                   style={styles.valueText}
                   numberOfLines={1}
+                  ellipsis
                 >
-                  {valueLabel}
+                  {collapsedValueLabel}
                 </Text>
               </View>
             </View>
@@ -223,6 +230,11 @@ const styles = StyleSheet.create({
   },
   flex1: {
     flex: 1,
+  },
+  valueContainer: {
+    maxWidth: "45%", // prevents the value from taking the whole row
+    alignItems: "flex-end",
+    flexShrink: 1,
   },
   valueText: {
     textAlign: "right",
