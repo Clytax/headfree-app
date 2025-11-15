@@ -190,7 +190,7 @@ const HomePredictionBottomSheet = forwardRef<
         <ResultsState
           result={predictionResult}
           latencyMs={latencyMs}
-          riskColor={getRiskColor(predictionResult.risk_level)}
+          riskColor={getRiskColor(predictionResult.risk_level ?? "unknown")}
           onClose={dismiss}
         />
       )}
