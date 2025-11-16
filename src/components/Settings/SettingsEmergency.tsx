@@ -160,6 +160,9 @@ const SettingsEmergency = () => {
       <Text style={styles.sectionTitle} fontWeight="bold">
         Emergency
       </Text>
+      <Text style={styles.sectionHint}>
+        These settings will be applied when you enable Emergency mode
+      </Text>
 
       {/* Brightness */}
       <View style={styles.card}>
@@ -319,7 +322,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: getFontSize(20),
     color: Colors.text,
-    marginBottom: hp(2),
   },
   toggleBtn: {
     marginTop: hp(1.5),
@@ -328,5 +330,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 10,
+  },
+  sectionHint: {
+    marginTop: 4,
+    marginBottom: hp(2),
+    fontSize: getFontSize(13),
+    color: Colors.neutral300,
   },
 });

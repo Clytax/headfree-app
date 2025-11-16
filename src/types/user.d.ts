@@ -71,6 +71,7 @@ export interface IUserEmergencySettings {
 export interface IUserSettings {
   reminderTime: string | null; // "HH:MM" 24h format
   reminderEnabled: boolean;
+  mode: "normal" | "sensitive";
 }
 
 export interface IUserAnalytics {

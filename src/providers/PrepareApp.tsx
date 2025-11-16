@@ -9,6 +9,9 @@ import {
   View,
 } from "react-native";
 
+// Packages
+import { CopilotProvider } from "react-native-copilot";
+
 // Components
 import BaseToast from "@/components/common/BaseToast";
 import NotificationNavigator from "@/providers/NotificationNavigator";

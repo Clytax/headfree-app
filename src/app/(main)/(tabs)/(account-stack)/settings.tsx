@@ -9,6 +9,7 @@ import MyTouchableOpacity from "@/components/common/Buttons/MyTouchableOpacity";
 import SettingsBaseline from "@/components/Settings/SettingsBaseline";
 import SettingsEmergency from "@/components/Settings/SettingsEmergency";
 import SettingsNotifications from "@/components/Settings/SettingsNotifications";
+import SettingsOther from "@/components/Settings/SettingsOther";
 
 // Constants
 import { Colors, Sizes } from "@/constants";
@@ -27,9 +28,13 @@ const Settings = () => {
   const router = useRouter();
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: hp(5) }}
+    >
       <SettingsEmergency />
       <SettingsNotifications />
+      <SettingsOther />
     </ScrollView>
   );
 };

@@ -28,6 +28,7 @@ export const createEmptyUser = (
     settings: {
       reminderTime: null,
       reminderEnabled: false,
+      mode: "normal",
     },
     analytics: {
       accountCreated: now,
