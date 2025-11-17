@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 // Navigation and Routing
 import { usePathname, useRouter, useSegments } from "expo-router";
@@ -111,9 +111,9 @@ const Home = () => {
   }, [hasTodaysPrediction]);
 
   // Memoize the child components
-  const MemoizedOutlook = React.memo(Outlook);
-  const MemoizedGeneratePrediction = React.memo(HomeGeneratePrediction);
-  const MemoizedNoPrediction = React.memo(HomeNoPredictionToday);
+  const MemoizedOutlook = Outlook;
+  const MemoizedGeneratePrediction = HomeGeneratePrediction;
+  const MemoizedNoPrediction = HomeNoPredictionToday;
 
   // Then use useMemo for the JSX
   const outlookContent = useMemo(() => {
@@ -149,12 +149,14 @@ const Home = () => {
         onPressRight={() => setHistoryVisible(true)}
         rightAccessibilityLabel="Open prediction history"
       />
+
       {outlookContent}
       <HomePredictionBottomSheet
         ref={bottomSheetRef}
         yesterdayDate={yesterdayDate}
         onClose={() => bottomSheetRef.current?.dismiss()}
         userId={userAuth?.uid || ""}
+        yesterdaysEntry={yesterdaysEntry}
       />
       <HistoryModal
         visible={historyVisible}

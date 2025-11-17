@@ -16,7 +16,7 @@ import { useAuth } from "@/context/auth/AuthContext";
 const db = getFirestore();
 
 // Types
-interface DailyEntry {
+export interface DailyEntry {
   id: string;
   date: string;
   createdAt: any;

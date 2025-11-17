@@ -11,6 +11,9 @@ module.exports = ({ config }: ConfigContext): ExpoConfig => {
     version: "1.0.0",
     ios: {
       supportsTablet: true,
+      entitlements: {
+        "aps-environment": "production",
+      },
 
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
@@ -22,7 +25,7 @@ module.exports = ({ config }: ConfigContext): ExpoConfig => {
       },
       bundleIdentifier: "com.ms.headfree",
       googleServicesFile: "./GoogleService-Info.plist",
-      buildNumber: "1",
+      buildNumber: "2",
       // process.env.IOS_FIREBASE_GOOGLE_SERVICE ?? "./GoogleService-Info.plist",
     },
     android: {

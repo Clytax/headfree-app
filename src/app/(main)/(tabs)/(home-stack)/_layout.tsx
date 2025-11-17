@@ -39,6 +39,10 @@ const HomeStack = () => {
           ),
         }}
       />
+      <Stack.Screen
+        name="prediction-result"
+        options={{ headerShown: false, presentation: "modal" }}
+      />
     </Stack>
   );
 };

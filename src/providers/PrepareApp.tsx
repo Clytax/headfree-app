@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import {
   AppState,
   LogBox,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -56,8 +57,10 @@ const AppContent = ({ children }: { children: React.ReactNode }) => {
   const { isBiometricAuthActive } = useBiometricAuth();
 
   useEffect(() => {
-    NavigationBar.setVisibilityAsync("hidden");
-    NavigationBar.setBehaviorAsync("overlay-swipe"); // swipe from edge to show
+    if (Platform.OS === "android") {
+      NavigationBar.setVisibilityAsync("hidden");
+      NavigationBar.setBehaviorAsync("overlay-swipe"); // swipe from edge to show
+    }
   }, []);
 
   // Handle app state changes for privacy screen

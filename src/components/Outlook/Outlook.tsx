@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 // Packages
 import { useRouter } from "expo-router";
 // Components
@@ -39,7 +39,6 @@ const Outlook = ({ prediction }: OutlookProps) => {
   const user = useUser();
   const predictions = usePredictions().data;
   const todaysPrediction = getPredictionByDate(predictions, todayJustDate);
-
   // Use real prediction data - prioritize the prop, fallback to today's prediction
   const activePrediction = prediction || todaysPrediction;
 
@@ -48,12 +47,23 @@ const Outlook = ({ prediction }: OutlookProps) => {
     ? activePrediction?.migraine_probability * 100
     : 0;
   const riskFactors = activePrediction?.top_risk_factors ?? [];
-
   const getOutlookText = () => {
     if (percentage >= 75) return "High";
     if (percentage >= 50) return "Medium";
     return "Low";
   };
+  const handleOpenDetails = useCallback(() => {
+    console.log("hi");
+    if (!prediction?.prediction_date) {
+      // If your prediction ID field is different, change this accordingly
+      return;
+    }
+
+    router.push({
+      pathname: "/(main)/(tabs)/(home-stack)/prediction-result",
+      params: { prediction_date: prediction.prediction_date },
+    });
+  }, [prediction?.prediction_date, router]);
 
   // Show loading or empty state if no prediction available
   if (!activePrediction) {
@@ -79,11 +89,16 @@ const Outlook = ({ prediction }: OutlookProps) => {
       <Text textCenter fontSize={getFontSize(40)} fontWeight="bold">
         {percentage?.toFixed(0)}%
       </Text>
+      <Pressable onPress={handleOpenDetails} style={styles.detailsInlineBtn}>
+        <Text fontSize={getFontSize(14)} color={Colors.primary}>
+          View Details
+        </Text>
+      </Pressable>
       <OutlookProgressBar percentage={percentage} />
       <Text
         style={{
           paddingVertical: Sizes.marginVerticalLarge,
-          lineHeight: getFontSize(21),
+          lineHeight: getFontSize(22),
         }}
         textCenter
       >
@@ -104,5 +119,18 @@ const styles = StyleSheet.create({
     gap: Sizes.verticalExtraSmall,
     marginVertical: Sizes.marginVerticalLarge,
     paddingHorizontal: Sizes.containerPaddingHorizontal * 2,
+    position: "relative",
+  },
+  openDetails: {
+    marginTop: hp(2),
+    paddingVertical: hp(1.5),
+    backgroundColor: Colors.primary500 + "20",
+    borderRadius: Sizes.smallRadius,
+    zIndex: 10000,
+    position: "relative",
+  },
+  detailsInlineBtn: {
+    marginBottom: hp(1),
+    alignSelf: "center",
   },
 });

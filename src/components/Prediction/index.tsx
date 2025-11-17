@@ -23,7 +23,7 @@ import { getRiskColor } from "./utils/predictionUtils";
 import LoadingState from "./views/LoadingState";
 import InitialState from "./views/InitialState";
 import ResultsState from "./views/ResultState";
-import { IUserPrediction } from "@/types/user";
+import { IUserDailyEntry, IUserPrediction } from "@/types/user";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Hooks
@@ -31,11 +31,13 @@ import { getAuth, getIdToken } from "@react-native-firebase/auth";
 
 //  Utils
 import { callPredict } from "@/utils/prediction/predict";
+import { DailyEntry } from "@/hooks/firebase/useDailyEntry";
 
 export interface HomePredictionBottomSheetProps {
   yesterdayDate: string;
   onClose?: () => void;
   userId: string;
+  yesterdaysEntry?: DailyEntry | null;
 }
 
 export interface HomePredictionBottomSheetRef {
@@ -46,7 +48,7 @@ export interface HomePredictionBottomSheetRef {
 const HomePredictionBottomSheet = forwardRef<
   HomePredictionBottomSheetRef,
   HomePredictionBottomSheetProps
->(({ onClose, userId }, ref) => {
+>(({ onClose, userId, yesterdaysEntry }, ref) => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ["65%"], []);
   const insets = useSafeAreaInsets();
@@ -179,6 +181,7 @@ const HomePredictionBottomSheet = forwardRef<
       backgroundStyle={bgStyle}
       handleIndicatorStyle={indicatorStyle}
       backdropComponent={backdropComponent}
+      topInset={insets.top}
     >
       {isLoading && (
         <LoadingState
@@ -193,6 +196,7 @@ const HomePredictionBottomSheet = forwardRef<
           latencyMs={latencyMs}
           riskColor={getRiskColor(predictionResult.risk_level ?? "unknown")}
           onClose={dismiss}
+          yesterdaysEntry={yesterdaysEntry}
         />
       )}
 
