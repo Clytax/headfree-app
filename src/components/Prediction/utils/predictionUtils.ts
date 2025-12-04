@@ -47,16 +47,20 @@ export const formatFeatureName = (feature: string): string => {
   );
 };
 
+// ["Very Low", "Low", "Moderate", "High", "Very High"]
 export const getRiskColor = (riskLevel: string): string => {
   switch (riskLevel.toLowerCase()) {
     case "very high":
       return Colors.error500;
     case "high":
       return Colors.error300;
-    case "medium":
+    case "moderate":
       return Colors.warning500;
+
     case "low":
       return Colors.success500;
+    case "very low":
+      return Colors.success300;
     default:
       return Colors.neutral500;
   }

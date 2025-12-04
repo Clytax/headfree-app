@@ -448,14 +448,14 @@ const OnboardingProfileCard = () => {
           >
             Reset
           </Text>
-          <Text
+          {/* <Text
             style={styles.reset}
             onPress={onTestValues}
             fontSize={getFontSize(15)}
             color={hasValue ? Colors.text : Colors.neutral400}
           >
             Test
-          </Text>
+          </Text> */}
         </View>
 
         <View style={styles.third}>

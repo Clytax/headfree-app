@@ -305,9 +305,7 @@ const styles = StyleSheet.create({
   probabilityLabel: {
     marginTop: hp(0),
   },
-  factorsContainer: {
-    marginTop: hp(1),
-  },
+  factorsContainer: {},
   factorsTitle: {
     marginBottom: hp(0.5),
   },

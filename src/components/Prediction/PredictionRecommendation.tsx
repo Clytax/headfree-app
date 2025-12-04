@@ -229,7 +229,7 @@ const PredictionRecommendation: React.FC<PredictionRecommendationProps> = ({
   };
 
   if (recommendations.length === 0) {
-    return null;
+    return <View style={{ marginVertical: hp(2) }} />;
   }
 
   const rotateInterpolate = rotateAnim.interpolate({
