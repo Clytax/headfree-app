@@ -10,24 +10,11 @@ Headfree is a migraine companion app for adults who struggle with recurring atta
 
 ## Screenshots
 
-<div style="display: flex; gap: 20px;">
-
-  <div style="text-align: center;">
-    <img src="docs/screenshots/app-forecast-preview.png" width="250" />
-    <div>Daily Forecast</div>
-  </div>
-
-  <div style="text-align: center;">
-    <img src="docs/screenshots/app-emergency-preview.png" width="250" />
-    <div>Emergency Mode</div>
-  </div>
-
-  <div style="text-align: center;">
-    <img src="docs/screenshots/app-diary-preview.png" width="250" />
-    <div>Daily Diary</div>
-  </div>
-
-</div>
+<p float="left; gap: 10px;">
+  <img src="docs/screenshots/app-forecast-preview.png" width="250" />
+  <img src="docs/screenshots/app-emergency-preview.png" width="250" />
+  <img src="docs/screenshots/app-diary-preview.png" width="250" />
+</p>
 
 ---
 
