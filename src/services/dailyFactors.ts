@@ -172,9 +172,27 @@ export const FACTORS: readonly FactorMeta[] = [
       { value: 2, label: "💡 Significant exposure (harsh lighting, glare)" },
     ],
   },
-  { key: "sleep", kind: "object", initial: null },
-  { key: "location", kind: "object", initial: null },
-  { key: "menstrualCycle", kind: "object", initial: null },
+  {
+    key: "sleep",
+    kind: "object",
+    initial: null,
+    title: "Sleep",
+    description: "Your sleep data",
+  },
+  {
+    key: "location",
+    kind: "object",
+    initial: null,
+    title: "Location",
+    description: "Your location for weather tracking",
+  },
+  {
+    key: "menstrualCycle",
+    kind: "object",
+    initial: null,
+    title: "Menstrual Cycle",
+    description: "Your menstrual cycle ",
+  },
 ] as const;
 
 export const FACTOR_KEYS = FACTORS.map((f) => f.key) as readonly FactorKey[];

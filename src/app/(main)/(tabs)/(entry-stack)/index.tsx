@@ -41,6 +41,8 @@ import { useAuth } from "@/context/auth/AuthContext";
 import { FACTORS } from "@/services/dailyFactors";
 import { useDailyEntryForm } from "@/hooks/useDailyEntryForm";
 import { useTodayEntry } from "@/hooks/firebase/useDailyEntry";
+import MyTouchableOpacity from "@/components/common/Buttons/MyTouchableOpacity";
+import { useRouter } from "expo-router";
 
 // helpers
 const toISODate = (d: Date) => {
@@ -148,6 +150,28 @@ const DailyEntry: React.FC = () => {
   const user = useUser();
   const uid = useAuth().user?.uid;
 
+  // Factor visibility settings (optional factors can be hidden)
+  const factorVisibility = useMemo<Record<string, boolean>>(() => {
+    const raw = ((user?.data as any)?.settings?.factorVisibility ??
+      {}) as Record<string, boolean>;
+    return raw;
+  }, [user?.data]);
+
+  const visibleChoiceFactors = useMemo(
+    () =>
+      FACTORS.filter((f) => f.kind === "choice" && f.choices).filter(
+        (f) => factorVisibility[f.key] !== false // default: visible
+      ),
+    [factorVisibility]
+  );
+  const hiddenFactorsCount = useMemo(() => {
+    // only count choice factors that can actually be shown/hidden
+    return FACTORS.filter(
+      (f) =>
+        f.kind === "choice" && f.choices && factorVisibility[f.key] === false
+    ).length;
+  }, [factorVisibility]);
+
   const updateEntryStore = useDailyEntryStore((s) => s.updateEntryStore);
   const resetStore = useDailyEntryStore((s) => s.reset);
   const lastDate = useDailyEntryStore((s) => s.lastDate);
@@ -160,6 +184,7 @@ const DailyEntry: React.FC = () => {
 
   // read route params
   const route = useRoute();
+  const router = useRouter();
   const routeParams = (route as any)?.params;
 
   // Track which item is expanded
@@ -198,9 +223,9 @@ const DailyEntry: React.FC = () => {
   // Auto-expand first empty item when data loads
   React.useEffect(() => {
     if (!isLoadingEntry && expandedKey === null) {
-      const firstEmptyFactor = FACTORS.filter(
-        (f) => f.kind === "choice" && f.choices
-      ).find((f) => (fullStore as any)[f.key] == null);
+      const firstEmptyFactor = visibleChoiceFactors.find(
+        (f) => (fullStore as any)[f.key] == null
+      );
       if (firstEmptyFactor) {
         setExpandedKey(firstEmptyFactor.key);
         // Scroll to it after a brief delay to ensure layout is complete
@@ -209,7 +234,7 @@ const DailyEntry: React.FC = () => {
         }, 100);
       }
     }
-  }, [isLoadingEntry, fullStore, expandedKey]);
+  }, [isLoadingEntry, fullStore, expandedKey, visibleChoiceFactors]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -468,9 +493,28 @@ const DailyEntry: React.FC = () => {
 
   return (
     <SafeAreaContainer style={styles.container}>
-      <Text fontWeight="bold" fontSize={getFontSize(24)} textCenter>
-        Daily Health Entry
-      </Text>
+      <View style={styles.header}>
+        <Text fontWeight="bold" fontSize={getFontSize(24)} textCenter>
+          Daily Health Entry
+        </Text>
+        <MyTouchableOpacity
+          onPress={() => router.push("/faq")}
+          style={{
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            alignSelf: "center",
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel="Navigate to FAQ"
+          accessibilityHint="Opens the Frequently Asked Questions page"
+          accessibilityIdentifier="faq-button"
+        >
+          <Text fontSize={getFontSize(14)} color={Colors.primary}>
+            Questions? Visit our FAQ.
+          </Text>
+        </MyTouchableOpacity>
+      </View>
 
       <DateHeader date={selectedDate} onChange={setSelectedDate} />
 
@@ -525,7 +569,7 @@ const DailyEntry: React.FC = () => {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        {FACTORS.filter((f) => f.kind === "choice" && f.choices).map((f) => (
+        {visibleChoiceFactors.map((f) => (
           <View
             key={f.key}
             ref={(ref) => {
@@ -540,13 +584,14 @@ const DailyEntry: React.FC = () => {
               onChange={(value) => {
                 handleEntryChange(f.key as any, value, isSubmitting);
                 // Auto-advance to next empty item after selection
+                // Auto-advance to next empty *visible* item after selection
                 setTimeout(() => {
-                  const currentIndex = FACTORS.filter(
-                    (f) => f.kind === "choice" && f.choices
-                  ).findIndex((factor) => factor.key === f.key);
-                  const remainingFactors = FACTORS.filter(
-                    (f) => f.kind === "choice" && f.choices
-                  ).slice(currentIndex + 1);
+                  const currentIndex = visibleChoiceFactors.findIndex(
+                    (factor) => factor.key === f.key
+                  );
+                  const remainingFactors = visibleChoiceFactors.slice(
+                    currentIndex + 1
+                  );
                   const nextEmptyFactor = remainingFactors.find(
                     (factor) => (fullStore as any)[factor.key] == null
                   );
@@ -580,6 +625,32 @@ const DailyEntry: React.FC = () => {
 
         {user?.data?.profile?.gender === "female" && (
           <DailyEntryMenstruationCycle />
+        )}
+        {hiddenFactorsCount > 0 && (
+          <View style={styles.hiddenInfoRow}>
+            <Text
+              fontSize={getFontSize(12)}
+              color={Colors.neutral400}
+              style={{ marginRight: wp(2) }}
+            >
+              {hiddenFactorsCount} factor
+              {hiddenFactorsCount > 1 ? "s" : ""} hidden.
+            </Text>
+
+            <MyTouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/(main)/(tabs)/(account-stack)/settings",
+                  params: { scrollTo: "factors" },
+                })
+              }
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text fontSize={getFontSize(12)} color={Colors.primary}>
+                Manage in Settings
+              </Text>
+            </MyTouchableOpacity>
+          </View>
         )}
       </ScrollView>
 
@@ -684,6 +755,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: hp(0.5),
   },
+  hiddenInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: Sizes.containerPaddingHorizontal,
+    paddingBottom: hp(1),
+  },
+
   copyButton: {
     paddingVertical: hp(0.8),
     paddingHorizontal: wp(3),
@@ -822,5 +901,10 @@ const styles = StyleSheet.create({
   // if you want reset text to be dark on outline button:
   actionButtonOutlineText: {
     color: Colors.textDark,
+  },
+  header: {
+    alignItems: "center",
+    marginBottom: -hp(2),
+    paddingTop: hp(1),
   },
 });

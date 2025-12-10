@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { signOut, getAuth } from "@react-native-firebase/auth";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
+import * as Print from "expo-print";
 
 import {
   getFirestore,
@@ -180,6 +181,178 @@ const Account = () => {
       setIsUpdating(false);
     }
   };
+  const exportJsonExport = async () => {
+    if (!authUser?.uid) {
+      Alert.alert("Error", "User not found. Please try logging in again.");
+      return;
+    }
+
+    setIsUpdating(true);
+    const uid = authUser.uid;
+
+    try {
+      const firestore = getFirestore();
+      const userDocRef = doc(firestore, "users", uid);
+      const userSnap = await getDoc(userDocRef);
+      const userData = userSnap.data() || {};
+
+      const getCollection = async (path: string) => {
+        const collectionRef = firestore.collection(path);
+        const snap = await collectionRef.get();
+        return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      };
+
+      const [entries, predictions] = await Promise.all([
+        getCollection(`users/${uid}/entries`),
+        getCollection(`users/${uid}/predictions`),
+      ]);
+
+      const payload = {
+        uid,
+        exported_at: new Date().toISOString(),
+        data: {
+          user: { id: uid, ...userData },
+          entries,
+          predictions,
+        },
+        schema_version: 1,
+        app: { name: "Headfree", platform: "mobile" },
+      };
+
+      const safeTs = new Date().toISOString().replace(/[:.]/g, "-");
+      const fileName = `headfree-export-${uid}-${safeTs}.json`;
+      const fileUri = FileSystem.documentDirectory + fileName;
+
+      await FileSystem.writeAsStringAsync(
+        fileUri,
+        JSON.stringify(payload, null, 2),
+        { encoding: FileSystem.EncodingType.UTF8 }
+      );
+
+      await setDoc(
+        userDocRef,
+        {
+          privacy: {
+            ...(userData.privacy || {}),
+            lastDataExport: new Date().toISOString(),
+          },
+        },
+        { merge: true }
+      );
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: "application/json",
+          dialogTitle: "Your Headfree data export (JSON)",
+        });
+      } else {
+        Alert.alert(
+          "Export saved",
+          `Saved to:\n${fileUri}\n\nYou can copy this path with a file manager.`
+        );
+      }
+    } catch (error) {
+      console.error("Error exporting JSON data:", error);
+      Alert.alert("Error", "Failed to export JSON data. Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const exportPdfSummary = async () => {
+    if (!authUser?.uid) {
+      Alert.alert("Error", "User not found. Please try logging in again.");
+      return;
+    }
+
+    setIsUpdating(true);
+    const uid = authUser.uid;
+
+    try {
+      const firestore = getFirestore();
+      const now = new Date();
+      const fromDate = new Date(now);
+      fromDate.setDate(fromDate.getDate() - 30);
+
+      // Very simple example: last 30 days of entries + predictions
+      const getCollection = async (path: string) => {
+        const collectionRef = firestore.collection(path);
+        const snap = await collectionRef.get();
+        return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      };
+
+      const [entries, predictions] = await Promise.all([
+        getCollection(`users/${uid}/entries`),
+        getCollection(`users/${uid}/predictions`),
+      ]);
+
+      // Filter by last 30 days if your IDs are dates, otherwise adapt
+      const recentEntries = entries.filter((e) => {
+        const d = new Date(e.id || e.date);
+        return d >= fromDate && d <= now;
+      });
+      const recentPredictions = predictions.filter((p) => {
+        const d = new Date(p.prediction_date || p.id);
+        return d >= fromDate && d <= now;
+      });
+
+      // Minimal HTML summary – you can make this nicer later with charts
+      const html = `
+      <html>
+        <body>
+          <h1>Headfree 30-day Summary</h1>
+          <p>User ID: ${uid}</p>
+          <p>Period: ${fromDate.toISOString().slice(0, 10)} – ${now
+        .toISOString()
+        .slice(0, 10)}</p>
+
+          <h2>Entries (${recentEntries.length})</h2>
+          <ul>
+            ${recentEntries
+              .map(
+                (e) =>
+                  `<li>${e.id || e.date}: migraine=${
+                    e.migraine ? "yes" : "no"
+                  }</li>`
+              )
+              .join("")}
+          </ul>
+
+          <h2>Predictions (${recentPredictions.length})</h2>
+          <ul>
+            ${recentPredictions
+              .map(
+                (p) =>
+                  `<li>${p.prediction_date || p.id}: ${
+                    p.risk_level || "N/A"
+                  } (${Math.round((p.migraine_probability || 0) * 100)}%)</li>`
+              )
+              .join("")}
+          </ul>
+        </body>
+      </html>
+    `;
+
+      const { uri } = await Print.printToFileAsync({ html });
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: "application/pdf",
+          dialogTitle: "Your Headfree 30-day summary (PDF)",
+        });
+      } else {
+        Alert.alert(
+          "Export saved",
+          `Summary PDF saved to:\n${uri}\n\nYou can copy this path with a file manager.`
+        );
+      }
+    } catch (error) {
+      console.error("Error exporting PDF summary:", error);
+      Alert.alert("Error", "Failed to export PDF summary. Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const revokeRequiredConsent = () => {
     Alert.alert(
@@ -346,18 +519,36 @@ const Account = () => {
               {formatDate(user.data?.privacy?.lastDataExport)}
             </Text>
           </View>
-          <Pressable
-            onPress={exportData}
-            style={({ pressed }) => [
-              styles.smallButton,
-              pressed && styles.smallButtonPressed,
-            ]}
-            disabled={isUpdating}
-          >
-            <Text style={styles.smallButtonText} fontWeight="semibold">
-              Export
-            </Text>
-          </Pressable>
+
+          <View style={styles.exportButtons}>
+            <Pressable
+              onPress={exportJsonExport}
+              style={({ pressed }) => [
+                styles.smallButton,
+                styles.exportButton,
+                pressed && styles.smallButtonPressed,
+              ]}
+              disabled={isUpdating}
+            >
+              <Text style={styles.smallButtonText} fontWeight="semibold">
+                JSON
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={exportPdfSummary}
+              style={({ pressed }) => [
+                styles.smallButton,
+                styles.exportButton,
+                pressed && styles.smallButtonPressed,
+              ]}
+              disabled={isUpdating}
+            >
+              <Text style={styles.smallButtonText} fontWeight="semibold">
+                30-day PDF
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
         {/* Request Deletion Button */}
@@ -538,5 +729,13 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: hp(4),
+  },
+  exportButtons: {
+    justifyContent: "center",
+    alignItems: "flex-end",
+  },
+
+  exportButton: {
+    marginBottom: hp(0.5),
   },
 });

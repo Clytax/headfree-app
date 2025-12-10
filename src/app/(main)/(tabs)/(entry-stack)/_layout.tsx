@@ -22,6 +22,7 @@ const EntryStack = () => {
   return (
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="faq" options={{ headerShown: false }} />
     </Stack>
   );
 };

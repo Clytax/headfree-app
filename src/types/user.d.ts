@@ -83,6 +83,7 @@ export interface IUserSettings {
   reminderTime: string | null; // "HH:MM" 24h format
   reminderEnabled: boolean;
   mode: "normal" | "sensitive";
+  factorVisibility: Record<string, boolean>; // key = factor key, value = visible?
 }
 
 export interface IUserAnalytics {

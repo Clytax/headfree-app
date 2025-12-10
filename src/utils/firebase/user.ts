@@ -29,6 +29,7 @@ export const createEmptyUser = (
       reminderTime: null,
       reminderEnabled: false,
       mode: "normal",
+      factorVisibility: {}, // interpreted as "all factors shown" in the app
     },
     analytics: {
       accountCreated: now,
