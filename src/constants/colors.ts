@@ -67,6 +67,7 @@ export const BaseColors = {
 };
 
 const FinalColors = {
+  transparent: "transparent",
   primary: BaseColors.primary500,
   primaryLight: BaseColors.primary300,
   primaryDark: BaseColors.primary700,

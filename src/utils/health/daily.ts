@@ -52,7 +52,6 @@ export const completionPercent = (
   const keys = hasCycle
     ? FACTOR_KEYS
     : FACTOR_KEYS.filter((k) => k !== "menstrualCycle");
-  console.log(keys);
   const done = keys.reduce((acc, k) => {
     const v = (store as any)[k];
     return acc + (v !== null && v !== undefined ? 1 : 0);

@@ -43,6 +43,13 @@ import {
   canShowPrompt,
   clearDismissalTime,
 } from "@/utils/storage/predictionPrompt";
+import WeeklyHint from "@/components/WeeklyHint/WeeklyHint";
+
+type HistoryFilter =
+  | { type: "caffeine"; operator: "=="; value: number }
+  | { type: "alcohol"; operator: "=="; value: number }
+  | { type: "sleepMinutesLessThan"; value: number };
+// extend as needed
 
 const today = new Date();
 const todayJustDate = new Date(
@@ -55,6 +62,10 @@ const Home = () => {
   const router = useRouter();
   const user = useUser();
   const { user: userAuth } = useAuth();
+  const [historyFilter, setHistoryFilter] = useState<HistoryFilter | null>(
+    null
+  );
+
   const [historyVisible, setHistoryVisible] = useState(false);
   const [canShowSheet, setCanShowSheet] = useState(false);
   const predictions = usePredictions().data;
@@ -137,16 +148,25 @@ const Home = () => {
     MemoizedNoPrediction,
   ]);
 
+  // History Modal
+
   return (
     <View style={styles.container}>
       <Divider title="Daily Tip" />
       <DailyTips />
+      <WeeklyHint
+        setHistoryFilter={setHistoryFilter}
+        setHistoryVisible={setHistoryVisible}
+      />
       <Divider
         title="Outlook"
         rightIcon={
           <MaterialIcons name="history" size={20} color={Colors.primary} />
         }
-        onPressRight={() => setHistoryVisible(true)}
+        onPressRight={() => {
+          setHistoryFilter(null);
+          setHistoryVisible(true);
+        }}
         rightAccessibilityLabel="Open prediction history"
       />
 
@@ -161,6 +181,7 @@ const Home = () => {
       <HistoryModal
         visible={historyVisible}
         onClose={() => setHistoryVisible(false)}
+        filter={historyFilter}
       />
     </View>
   );

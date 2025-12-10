@@ -49,7 +49,6 @@ async function singlePredictCall(
     const base =
       process.env.EXPO_PUBLIC_HEADFREE_API?.replace(/\/+$/, "") ?? "";
     const url = new URL(base + "/predict");
-    console.log("url: ", url);
     if (opts?.force) url.searchParams.set("force", "1");
 
     const predictionDate =

@@ -10,8 +10,19 @@ export interface IUserDoc {
   settings: IUserSettings | null;
   analytics: IUserAnalytics | null;
   predictions?: IUserPrediction[] | null;
+  weekly_hint?: IUserWeeklyHint | null;
 }
 
+export interface IUserWeeklyHint {
+  id: string;
+  text: string;
+  filter: {
+    type: string;
+    operator: "==";
+    value: any;
+  };
+  createdAt: string;
+}
 export interface IUserPrivacy {
   consentVersion: string;
   consentTimestamp: string;

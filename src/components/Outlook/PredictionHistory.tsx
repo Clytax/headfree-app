@@ -8,16 +8,29 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
+
+// Components
 import Text from "@/components/common/Text";
+
+// Constants
 import { Colors, Sizes } from "@/constants";
+
+// Utils
 import { hp, wp } from "@/utils/ui/sizes";
-import { usePredictions } from "@/hooks/firebase/usePredictions";
 import { getFontSize } from "@/utils/text/fonts";
-import type { IUserPrediction } from "@/types/user"; // <- import your interface here
+
+// Hooks
+import { usePredictions } from "@/hooks/firebase/usePredictions";
+
+// Types
+import type { IUserPrediction, IUserWeeklyHint } from "@/types/user";
+
+export type HistoryFilter = IUserWeeklyHint["filter"];
 
 type Props = {
   visible: boolean;
   onClose: () => void;
+  filter?: HistoryFilter | null;
 };
 
 /**
@@ -108,7 +121,7 @@ export function dateFromPrediction(
   return null;
 }
 
-export default function HistoryModal({ visible, onClose }: Props) {
+export default function HistoryModal({ visible, onClose, filter }: Props) {
   // usePredictions is typed to return IUserPrediction[] in your hook already,
   // but be defensive and tell TS the generic type here if needed.
   const { data: predictions, isLoading } = usePredictions(); // typed from hook
@@ -137,7 +150,6 @@ export default function HistoryModal({ visible, onClose }: Props) {
         return { raw: p, date: parsed };
       })
       .sort((a, b) => {
-        // Items without date go to the end
         if (!a.date && !b.date) return 0;
         if (!a.date) return 1;
         if (!b.date) return -1;
@@ -147,6 +159,41 @@ export default function HistoryModal({ visible, onClose }: Props) {
 
     return transformed;
   }, [predsArray]);
+
+  const filtered = useMemo(() => {
+    if (!filter) return allSorted;
+
+    const { type, operator, value } = filter;
+
+    if (operator !== "==") {
+      // For now, prototype only supports equality
+      return allSorted;
+    }
+
+    switch (type) {
+      case "risk_level":
+        return allSorted.filter(
+          (p) =>
+            String((p as any)?.risk_level ?? "").toLowerCase() ===
+            String(value).toLowerCase()
+        );
+
+      case "top_risk_feature":
+        return allSorted.filter((p) => {
+          const factors = (p as any)?.top_risk_factors;
+          if (!Array.isArray(factors)) return false;
+          return factors.some(
+            (f: any) =>
+              typeof f?.feature === "string" &&
+              f.feature.toLowerCase() === String(value).toLowerCase()
+          );
+        });
+
+      // extend with whatever you need later, e.g. "caffeine_day", etc.
+      default:
+        return allSorted;
+    }
+  }, [allSorted, filter]);
 
   return (
     <Modal
@@ -174,13 +221,17 @@ export default function HistoryModal({ visible, onClose }: Props) {
               <ActivityIndicator size="small" color={Colors.primary} />
               <Text style={{ marginTop: 8 }}>Loading predictions</Text>
             </View>
-          ) : allSorted.length === 0 ? (
+          ) : filtered.length === 0 ? (
             <View style={styles.empty}>
-              <Text>No predictions yet</Text>
+              <Text>
+                {filter
+                  ? "No predictions match this filter"
+                  : "No predictions yet"}
+              </Text>
             </View>
           ) : (
             <FlatList
-              data={allSorted}
+              data={filtered}
               // keyExtractor will use `id` when present, otherwise fallback to index string
               keyExtractor={(item: IUserPrediction, index) =>
                 String(

@@ -92,7 +92,6 @@ const HomePredictionBottomSheet = forwardRef<
     try {
       const auth = getAuth();
       const userToken = await getIdToken(auth.currentUser!, true);
-      console.log("userToken: ", userToken);
       const { outcome, data } = await callPredict(userToken, 20000, {
         amountOfTests: 1,
         force: false,
