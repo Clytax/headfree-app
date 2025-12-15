@@ -110,7 +110,7 @@ const DateHeader = ({
         onPress={() => onChange(addDays(date, -1))}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <ChevronLeft size={24} color={Colors.textDark} />
+        <ChevronLeft size={24} color={Colors.whiteTransparent} />
       </TouchableOpacity>
 
       <TouchableOpacity onPress={openPicker} style={styles.dateCenter}>
@@ -127,7 +127,7 @@ const DateHeader = ({
         style={{ opacity: isSameDay(date, today) ? 0.4 : 1 }}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <ChevronRight size={24} color={Colors.textDark} />
+        <ChevronRight size={24} color={Colors.whiteTransparent} />
       </TouchableOpacity>
 
       <DateTimePickerModal
@@ -498,7 +498,7 @@ const DailyEntry: React.FC = () => {
           Daily Health Entry
         </Text>
         <MyTouchableOpacity
-          onPress={() => router.push("/faq")}
+          onPress={() => router.push("/(main)/faq")}
           style={{
             paddingHorizontal: 8,
             paddingVertical: 4,

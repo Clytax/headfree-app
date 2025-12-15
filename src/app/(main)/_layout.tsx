@@ -64,6 +64,8 @@ const MainLayout = () => {
               presentation: "modal",
             }}
           />
+
+          <Stack.Screen name="faq" options={{ headerShown: false }} />
         </Stack.Protected>
       </Stack.Protected>
     </Stack>

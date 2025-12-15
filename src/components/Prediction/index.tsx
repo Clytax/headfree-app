@@ -32,6 +32,7 @@ import { getAuth, getIdToken } from "@react-native-firebase/auth";
 //  Utils
 import { callPredict } from "@/utils/prediction/predict";
 import { DailyEntry } from "@/hooks/firebase/useDailyEntry";
+import { fa } from "zod/v4/locales";
 
 export interface HomePredictionBottomSheetProps {
   yesterdayDate: string;
@@ -52,6 +53,7 @@ const HomePredictionBottomSheet = forwardRef<
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ["65%"], []);
   const insets = useSafeAreaInsets();
+  const tapStartRef = useRef<number | null>(null);
 
   const auth = getAuth();
 
@@ -86,11 +88,14 @@ const HomePredictionBottomSheet = forwardRef<
   }, [stopCycling]);
   useImperativeHandle(ref, () => ({ present, dismiss }), [present, dismiss]);
   const handleGeneratePrediction = useCallback(async () => {
+    tapStartRef.current = performance.now();
+
     setIsLoading(true);
     setError(null);
     startCycling();
     try {
       const auth = getAuth();
+      console.log(process.env.EXPO_PUBLIC_HEADFREE_API);
       const userToken = await getIdToken(auth.currentUser!, true);
       const { outcome, data } = await callPredict(userToken, 20000, {
         amountOfTests: 1,
@@ -149,6 +154,15 @@ const HomePredictionBottomSheet = forwardRef<
     []
   );
 
+  const onResultsFirstRender = useCallback(() => {
+    const t0 = tapStartRef.current;
+    if (t0 == null) return;
+
+    const ms = performance.now() - t0;
+    console.log(`[APP_LATENCY] tap->first_render=${ms.toFixed(1)}ms`);
+    setLatencyMs(ms); // overwrite latencyMs to be the true app latency
+  }, []);
+
   const bgStyle = useMemo(
     () => ({
       backgroundColor: Colors.background,
@@ -196,6 +210,7 @@ const HomePredictionBottomSheet = forwardRef<
           riskColor={getRiskColor(predictionResult.risk_level ?? "unknown")}
           onClose={dismiss}
           yesterdaysEntry={yesterdaysEntry}
+          onFirstRender={onResultsFirstRender}
         />
       )}
 

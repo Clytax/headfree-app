@@ -1,19 +1,32 @@
 // components/Prediction/PredictionResultContent.tsx
-import React, { useState, useRef, useEffect } from "react";
-import { StyleSheet, View, Animated, Easing } from "react-native";
-import { AlertCircle, CheckCircle, ChevronDown } from "lucide-react-native";
+
+// Packages
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Easing, StyleSheet, View } from "react-native";
+
+// Third-party
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import Text from "@/components/common/Text";
-import MyTouchableOpacity from "@/components/common/Buttons/MyTouchableOpacity";
-import { Colors } from "@/constants";
-import { getFontSize } from "@/utils/text/fonts";
-import { wp, hp } from "@/utils/ui/sizes";
-import { IUserPrediction } from "@/types/user";
-import { formatFeatureName } from "./utils/predictionUtils";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AlertCircle, CheckCircle, ChevronDown } from "lucide-react-native";
+
+// Components
+import MyTouchableOpacity from "@/components/common/Buttons/MyTouchableOpacity";
 import PredictionRecommendation, {
   DiaryEntry,
 } from "@/components/Prediction/PredictionRecommendation";
+import Text from "@/components/common/Text";
+
+// Constants
+import { Colors } from "@/constants";
+
+// Types
+import { IUserPrediction } from "@/types/user";
+
+// Utils
+import { formatFeatureName } from "./utils/predictionUtils";
+import { getFontSize } from "@/utils/text/fonts";
+import { wp, hp } from "@/utils/ui/sizes";
 
 interface PredictionResultContentProps {
   result: IUserPrediction;
@@ -38,6 +51,8 @@ const PredictionResultContent: React.FC<PredictionResultContentProps> = ({
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const bounceAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  const router = useRouter();
 
   // Add refs to track sizes
   const contentSizeRef = useRef({ width: 0, height: 0 });
@@ -113,7 +128,6 @@ const PredictionResultContent: React.FC<PredictionResultContentProps> = ({
           paddingTop: hp(2),
         }}
         onScroll={handleScroll}
-        scrollEventThrottle={16}
         onContentSizeChange={handleContentSizeChange}
         onLayout={handleLayout}
       >
@@ -220,15 +234,37 @@ const PredictionResultContent: React.FC<PredictionResultContentProps> = ({
         </View>
 
         <View style={styles.disclaimerContainer}>
-          <AlertCircle size={16} color={Colors.neutral400} />
-          <Text
-            fontSize={getFontSize(12)}
-            color={Colors.neutral400}
-            style={styles.disclaimerText}
-          >
-            This is an estimation based on your data and not medical advice.
-            Consult healthcare professionals for medical decisions.
-          </Text>
+          <View style={styles.disclaimerCard}>
+            <View style={styles.disclaimerRow}>
+              <AlertCircle size={16} color={Colors.neutral400} />
+              <Text
+                fontSize={getFontSize(12)}
+                color={Colors.neutral400}
+                style={styles.disclaimerText}
+              >
+                This is an estimation based on your data and not medical advice.
+                Consult healthcare professionals for medical decisions.
+              </Text>
+            </View>
+
+            <MyTouchableOpacity
+              onPress={() => router.push("/(main)/faq")}
+              style={styles.faqButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole="button"
+              accessibilityLabel="Navigate to FAQ"
+              accessibilityHint="Opens the Frequently Asked Questions page"
+              accessibilityIdentifier="faq-button"
+            >
+              <Text
+                fontSize={getFontSize(13)}
+                color={Colors.primary}
+                style={styles.faqText}
+              >
+                Questions? Visit our FAQ
+              </Text>
+            </MyTouchableOpacity>
+          </View>
         </View>
 
         <MyTouchableOpacity
@@ -332,19 +368,47 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   disclaimerContainer: {
+    width: "100%",
+    paddingHorizontal: 16,
+    marginTop: hp(1.5),
+    marginBottom: hp(1.5),
+  },
+
+  disclaimerCard: {
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.neutral900, // swap to your "surface" color
+    borderWidth: 1,
+    borderColor: Colors.neutral800, // subtle border
+  },
+
+  disclaimerRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: wp(2),
-    backgroundColor: Colors.neutral800,
-    padding: wp(3),
-    borderRadius: 8,
-    marginTop: hp(3),
-    marginBottom: hp(2),
+    gap: 8,
   },
+
   disclaimerText: {
     flex: 1,
-    lineHeight: getFontSize(12) * 1.4,
+    lineHeight: 16,
   },
+
+  faqButton: {
+    marginTop: 10,
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: Colors.neutral800, // pill background
+    borderWidth: 1,
+    borderColor: Colors.neutral700,
+  },
+
+  faqText: {
+    lineHeight: 18,
+  },
+
   closeButton: {
     backgroundColor: Colors.primary,
     paddingVertical: hp(1.8),
