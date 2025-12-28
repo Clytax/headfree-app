@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
 
   faqButton: {
     marginTop: 10,
-    alignSelf: "flex-start",
+    alignSelf: "center",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
