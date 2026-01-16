@@ -188,7 +188,7 @@ Expo will automatically expose variables prefixed with `EXPO_PUBLIC_` to the cli
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/your-org/headfree.git
+git clone https://github.com/Clytax/headfree-app.git
 cd headfree
 
 # Install dependencies
